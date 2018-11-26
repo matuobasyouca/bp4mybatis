@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!-- 基础封装数据库操作类，通过映射直接处理相应对象的简单读写操作 -->
+<mapper namespace="Employee">
+
+    <select id="selectEmployeeIdsByParam" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT e.id
+        FROM Employee e
+        WHERE 1 = 1
+    </select>
+
+    <resultMap id="EmployeeNormalResult" type="cc.kyp82ndlf.web.entity.Employee">
+        <id property="id" column="id"/>
+        <result property="openId" column="openId"/>
+        <result property="realName" column="realName"/>
+        <result property="mobile" column="mobile"/>
+        <result property="state" column="state"/>
+        <association property="department" javaType="cc.kyp82ndlf.web.entity.Department">
+            <result property="name" column="dname"/>
+            <result property="detail" column="ddetail"/>
+            <result property="officePhone" column="dofficePhone"/>
+            <result property="province" column="dprovince"/>
+            <result property="city" column="dcity"/>
+            <result property="district" column="ddistrict"/>
+            <result property="address" column="daddress"/>
+        </association>
+    </resultMap>
+
+    <select id="selectEmployeeNormalInfoByParam" parameterType="java.util.HashMap" resultMap="EmployeeNormalResult">
+        SELECT e.*,
+        d.name as dname, d.detail as ddetail, d.officePhone as dofficePhone, d.province as dprovince, d.city as dcity,
+        d.district as ddistrict, d.address as daddress
+        FROM Employee e
+        INNER JOIN Department d ON d.id = e.departmentId
+        WHERE 1 = 1
+        <if test="id != null and id !=''">
+            AND e.id = #{id}
+        </if>
+        <if test="openId != null and openId !=''">
+            AND e.openId = #{openId}
+        </if>
+        <if test="state != null and state !=''">
+            AND e.state = #{state}
+        </if>
+        <if test="departmentId != null and departmentId !=''">
+            AND d.id = #{departmentId}
+        </if>
+    </select>
+
+    <resultMap id="EmployeeResult" type="cc.kyp82ndlf.web.entity.Employee">
+        <id property="id" column="id"/>
+        <result property="openId" column="openId"/>
+        <result property="departmentId" column="departmentId"/>
+        <result property="realName" column="realName"/>
+        <result property="mobile" column="mobile"/>
+        <result property="state" column="state"/>
+        <result property="headerImg" column="headerImg"/>
+        <association property="department" javaType="cc.kyp82ndlf.web.entity.Department">
+            <result property="id" column="did"/>
+            <result property="name" column="dname"/>
+            <result property="detail" column="ddetail"/>
+            <result property="officePhone" column="dofficePhone"/>
+            <result property="province" column="dprovince"/>
+            <result property="city" column="dcity"/>
+            <result property="district" column="ddistrict"/>
+            <result property="address" column="daddress"/>
+        </association>
+        <collection property="roles" ofType="cc.kyp82ndlf.base.security.rbac.Role">
+            <result property="id" column="roId"/>
+            <result property="name" column="roleName"/>
+            <result property="code" column="roleCode"/>
+            <collection property="privileges" ofType="cc.kyp82ndlf.base.security.rbac.Privilege">
+                <result property="id" column="privilegesId"/>
+                <result property="permissionValues" column="permissionValues"/>
+                <association property="resource" javaType="cc.kyp82ndlf.base.security.rbac.Resource">
+                    <result property="code" column="resourceCode"/>
+                    <result property="name" column="resourceName"/>
+                </association>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <select id="selectEmployeeMoreInfoByParam" parameterType="java.util.HashMap" resultMap="EmployeeResult">
+        SELECT e.id, e.openId, e.departmentId, e.realName, e.mobile, e.state,e.headerImg
+        ,d.id as did, d.name as dname, d.detail as ddetail, d.officePhone as dofficePhone, d.province as dprovince,
+        d.city as dcity, d.district as ddistrict, d.address as daddress
+        ,r.id as roId, r.name as roleName, r.code as roleCode, p.id as privilegesId, p.permissionValues, rs.`code`AS
+        resourceCode, rs.name as resourceName
+        FROM Employee e
+        INNER JOIN Department d ON d.id = e.departmentId
+        INNER JOIN EmployeeRole er ON e.id=er.employeeId
+        INNER JOIN Role r ON er.roleId=r.id
+        INNER JOIN Privilege p ON r.id=p.roleId
+        INNER JOIN Resource rs ON p.resourceId = rs.id
+        WHERE 1=1
+        <if test="id != null and id !=''">
+            AND e.id = #{id}
+        </if>
+        <if test="openId != null and openId !=''">
+            AND e.openId = #{openId}
+        </if>
+        <if test="state != null and state !=''">
+            AND e.state = #{state}
+        </if>
+        <if test="departmentId != null and departmentId !=''">
+            AND e.departmentId = #{departmentId}
+        </if>
+        <if test="mobile != null and mobile !=''">
+            AND e.mobile = #{mobile}
+        </if>
+        <if test="ids != null and ids.size > 0">
+            AND e.id in
+            <foreach collection="ids" item="idKey" separator="," open="(" close=")">
+                ${idKey}
+            </foreach>
+        </if>
+        <if test="orderBy != null and orderBy !=''">
+            ORDER BY ${orderBy}
+        </if>
+    </select>
+
+    <insert id="insertEmployeeRoles" parameterType="java.util.HashMap">
+        insert into EmployeeRole(employeeId, roleId) values(#{employeeId}, #{roleId})
+    </insert>
+
+    <update id="updateEmployeeRoles" parameterType="java.util.HashMap">
+        UPDATE EmployeeRole  SET  roleId = #{roleId} WHERE  employeeId = #{employeeId}
+    </update>
+
+</mapper>
