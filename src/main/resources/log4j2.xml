@@ -2,11 +2,11 @@
 <!-- status=debug 可以查看log4j的装配过程 -->
 <configuration status="off" monitorInterval="1800">
     <properties>
-        <property name="LOG_HOME">${log_home}</property>
+        <property name="LOG_HOME">.</property>
         <!-- 日志备份目录 -->
-        <property name="BACKUP_HOME">{LOG_HOME}/backup</property>
+        <property name="BACKUP_HOME">./backup</property>
         <property name="STAT_NAME">tech</property>
-        <property name="SERVER_NAME">cjy.admin</property>
+        <property name="SERVER_NAME">bp4mybatis</property>
     </properties>
     <appenders>
         <!-- 定义控制台输出 -->
@@ -23,7 +23,7 @@
         </RollingRandomAccessFile>
     </appenders>
     <loggers>
-        <!-- 3rdparty Loggers -->
+        <!-- 3rdparty Loggers
         <logger name="org.springframework" level="${thirdparty_log_level}">
         </logger>
         <logger name="org.apache.http" level="${thirdparty_log_level}">
@@ -31,12 +31,12 @@
         <logger name="com.riversoft" level="${thirdparty_log_level}">
         </logger>
         <logger name="org.springframework.scheduling" level="info">
-        </logger>
+        </logger> -->
 
         <!-- Root Logger -->
-        <root level="${log_level}">
+        <root level="DEBUG">
             <appender-ref ref="DevLog" />
-            <appender-ref ref="${Console}" />
+            <appender-ref ref="Console" />
         </root>
     </loggers>
 </configuration>

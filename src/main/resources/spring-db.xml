@@ -11,18 +11,6 @@
 <!-- 引入dbconfig.properties属性文件 -->
 	<!--<context:property-placeholder location="classpath:envs/*.properties" />-->
 
-	<bean id="log-filter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
-		<property name="resultSetLogEnabled" value="true" />
-		<property name="statementExecutableSqlLogEnable" value="false" />
-	</bean>
-
-	<bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
-		<property name="slowSqlMillis" value="30000" />
-		<property name="logSlowSql" value="true" />
-		<property name="mergeSql" value="true" />
-	</bean>
-
-	<bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter"></bean>
 
 	<bean id="dataSource" class="cc.kyp82ndlf.base.data.multisouce.DynamicDataSource">
 		<property name="targetDataSources">
@@ -36,9 +24,10 @@
 
 	<!-- ========================================配置数据源========================================= -->
 	<!-- 配置数据源，使用的是alibaba的Druid(德鲁伊)数据源 -->
-	<bean name="dataSourceMaster" class="com.alibaba.druid.pool.DruidDataSource"
+	<bean name="dataSourceMaster" class="com.zaxxer.hikari.HikariDataSource"
 		init-method="init" destroy-method="close">
-		<property name="url" value="${jdbc_url}" />
+		<property name="driverClassName" value="${jdbc_url}" />
+		<property name="jdbcUrl" value="${jdbc_url}" />
 		<property name="username" value="${jdbc_username}" />
 		<property name="password" value="${jdbc_password}" />
 		<!-- 初始化连接大小 -->
@@ -134,16 +123,16 @@
 		<property name="dataSource" ref="dataSource" />
 		<property name="mapperLocations">
 			<array>
-				<value>classpath*:cc/kyp82ndlf/**/mapping/*.xml</value>
+				<value>classpath*:com/software500/**/mapping/*.xml</value>
 			</array>
 		</property>
 		<property name="typeAliasesPackage" value="com.cjy.base.entity" />
 		<property name="plugins">
 			<array>
-				<bean class="cc.kyp82ndlf.base.mybatis.plugins.PermissionHelper">
-				</bean>
-				<bean class="cc.kyp82ndlf.base.mybatis.plugins.CommonDataInterceptor">
-				</bean>
+				<!--<bean class="cc.kyp82ndlf.base.mybatis.plugins.PermissionHelper">-->
+				<!--</bean>-->
+				<!--<bean class="cc.kyp82ndlf.base.mybatis.plugins.CommonDataInterceptor">-->
+				<!--</bean>-->
 				<bean class="com.github.pagehelper.PageHelper">
 					<property name="properties">
 						<value>
@@ -183,34 +172,17 @@
 	</tx:advice>
 	<aop:config>
 		<aop:pointcut id="transactionPointcut"
-			expression="execution(* cc.kyp82ndlf..*Service.*(..))" />
+			expression="execution(* com.software5000..*Service.*(..))" />
 		<aop:advisor pointcut-ref="transactionPointcut"
 			advice-ref="transactionAdvice" />
 	</aop:config>
 
 
-	<!-- 配置druid监控spring jdbc -->
-	<bean id="druid-stat-interceptor"
-		class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor">
-	</bean>
-	<bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut"
-		scope="prototype">
-		<property name="patterns">
-			<list>
-				<value>com.cjy.*</value>
-			</list>
-		</property>
-	</bean>
-	<aop:config>
-		<aop:advisor advice-ref="druid-stat-interceptor"
-			pointcut-ref="druid-stat-pointcut" />
-	</aop:config>
-
-	<!-- Flyway configuration -->
+	<!-- Flyway configuration
     <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="${FlyWay_init_method}">
 		<property name="baselineOnMigrate" value="true" />
 		<property name="locations" value="classpath:db/migrate/" />
 		<property name="dataSource" ref="dataSourceMaster" />
-	</bean>
+	</bean> -->
 
 </beans>
