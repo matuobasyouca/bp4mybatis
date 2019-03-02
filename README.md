@@ -4,7 +4,7 @@ my best practice for MyBatis.
 
 个人针对 MyBatis 的最佳实践。
 
-我经历很很多公司与项目，现在很多公司在选择架构时都喜欢MyBatis，因为相对于Hibernate来说，
+我经历过很多公司与项目，现在很多公司在选择架构时都喜欢MyBatis，因为相对于Hibernate来说，
 MyBatis比较轻量级。而且无论是QBC的Criteria，或者是HQL，相对于原生sql都需要一定的学习成本。
 因此大部分公司可能都倾向于Hibernate和Mybatis混用。Hibernate用于增删改和简单查询，Mybatis用于
 多表关联的复杂查询。
@@ -24,4 +24,4 @@ MyBatis比较轻量级。而且无论是QBC的Criteria，或者是HQL，相对�
 PS:针对上面的**数据操作机制化**的特性，还会涉及到RBAC权限模型的一些设计。
 
 本项目只能当作一种最佳实践方法，并非单纯组件。可以考虑参考并抽取形成自己的封装。
-主要涉及的开源组件：spring、pagehelper、log4j2。
+主要涉及的开源组件：spring boot、pagehelper、log4j2。
