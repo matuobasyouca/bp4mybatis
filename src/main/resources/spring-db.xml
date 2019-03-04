@@ -13,7 +13,6 @@
 	<context:property-placeholder location="classpath:application.properties" />
 
 	<!-- ========================================配置数据源========================================= -->
-	<!-- 配置数据源，使用的是alibaba的Druid(德鲁伊)数据源 -->
 	<bean name="dataSource" class="com.zaxxer.hikari.HikariDataSource"
 		destroy-method="close">
 		<property name="driverClassName" value="${driver}" />
@@ -42,6 +41,17 @@
 		<property name="typeAliasesPackage" value="com.software5000.biz.entity" />
 		<property name="plugins">
 			<array>
+				<bean class="com.zscp.base.mybatis.plugins.PermissionHelper">
+				</bean>
+				<bean class="com.zscp.base.mybatis.plugins.CommonDataInterceptor">
+				</bean>
+				<bean class="com.github.pagehelper.PageInterceptor">
+					<property name="properties">
+						<value>
+							dialect=mysql
+						</value>
+					</property>
+				</bean>
 			</array>
 		</property>
 	</bean>
@@ -55,7 +65,7 @@
 
 
 	<!-- 注解方式配置事物 -->
-	<!-- <tx:annotation-driven transaction-manager="transactionManager" /> -->
+	 <tx:annotation-driven transaction-manager="transactionManager" />
 
 	<!-- 拦截器方式配置事物 -->
 	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
