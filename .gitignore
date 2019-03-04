@@ -5,6 +5,8 @@
 *.iml
 
 # Log file
+logs
+logs/*
 *.log
 
 # BlueJ files
