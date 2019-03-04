@@ -1,0 +1,64 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'cc.kyp82ndlf'
+version = '0.1.0'
+
+description = "my best practice for MyBatis."
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    from('src/main/java') {
+        include '**/*'      // 导入里面的所有文件，也可以自定义正则表达式
+        exclude "**/*.java" // 源码文件中.java 文件是不需要的
+    }
+}
+sourceSets.main.resources.srcDirs = ["src/main/java","src/main/resources"]
+
+repositories {
+    maven { url "http://maven.dev.zoenet.cn:8000/nexus/content/groups/public/" }
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+def sfl4jVersion = "1.7.25"
+def log4j2Version = "2.4.1"
+def springVersion = "4.3.3.RELEASE"
+
+dependencies {
+    compile(
+            "org.springframework:spring-core:${springVersion}",
+            "org.springframework:spring-beans:${springVersion}",
+            "org.springframework:spring-orm:${springVersion}",
+            "org.springframework:spring-context-support:${springVersion}",
+
+            "org.aspectj:aspectjweaver:1.8.9",
+            "org.yaml:snakeyaml:1.9",
+
+            "org.slf4j:slf4j-api:${sfl4jVersion}",
+            "org.slf4j:jcl-over-slf4j:${sfl4jVersion}",
+
+            "org.apache.logging.log4j:log4j-core:${log4j2Version}",
+            "org.apache.logging.log4j:log4j-api:${log4j2Version}",
+            "org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}",
+
+            "mysql:mysql-connector-java:8.0.15",
+            "com.zaxxer:HikariCP:3.3.1",
+            "org.mybatis:mybatis:3.5.0",
+            "org.mybatis:mybatis-spring:2.0.0",
+            "com.github.pagehelper:pagehelper:5.1.8",
+            "com.alibaba:fastjson:1.2.29",
+
+            "com.zscp:masterutil:1.0-SNAPSHOT"
+
+    )
+
+    testCompile(
+            "org.springframework:spring-test:${springVersion}",
+            "junit:junit:4.12"
+    )
+}

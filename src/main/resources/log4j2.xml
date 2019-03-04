@@ -2,7 +2,7 @@
 <!-- status=debug 可以查看log4j的装配过程 -->
 <configuration status="off" monitorInterval="1800">
     <properties>
-        <property name="LOG_HOME">.</property>
+        <property name="LOG_HOME">logs</property>
         <!-- 日志备份目录 -->
         <property name="BACKUP_HOME">./backup</property>
         <property name="STAT_NAME">tech</property>
