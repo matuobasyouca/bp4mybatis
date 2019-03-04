@@ -20,7 +20,7 @@
 		<property name="jdbcUrl" value="${url}" />
 		<property name="username" value="${uname}" />
 		<property name="password" value="${password}" />
-		<property name="poolName" value="${username}" />
+		<!--<property name="poolName" value="${username}" />-->
 		<!--<property name="driverClassName" value="${jdbc.driver}" />-->
 		<!--<property name="jdbcUrl" value="${jdbc.url}" />-->
 		<!--<property name="username" value="${jdbc.username}" />-->
