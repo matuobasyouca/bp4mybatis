@@ -9,8 +9,6 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -38,16 +36,16 @@ public class CommonDataInterceptor implements Interceptor {
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("-yyyy-MM-dd HH:mm:ss.SSS-");
     private static final SimpleDateFormat TIMESTAMP_FORMAT2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private static final ThreadLocal<Long> ignoreData = new ThreadLocal<Long>();
+    private static final ThreadLocal<Long> IGNORE_DATA = new ThreadLocal<Long>();
 
     private Properties props = null;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
-        if (ignoreData.get() == null) {
+        if (IGNORE_DATA.get() == null) {
             processIntercept(invocation);
         } else {
-            ignoreData.remove();
+            IGNORE_DATA.remove();
         }
         return invocation.proceed();
     }
@@ -100,7 +98,7 @@ public class CommonDataInterceptor implements Interceptor {
             Insert insert = (Insert) stmt;
             List<Column> columns = insert.getColumns();
             for (int ci = 0; ci < columns.size(); ci++) {
-                if (columns.get(ci).getColumnName().equalsIgnoreCase("createTime")) {
+                if ("createTime".equalsIgnoreCase(columns.get(ci).getColumnName())) {
                     createTimeIndex = ci;
                 }
             }
@@ -183,6 +181,7 @@ public class CommonDataInterceptor implements Interceptor {
         }
     }
 
-    public static void ignoreDataThisTime(){ignoreData.set(System.currentTimeMillis());}
+    public static void ignoreDataThisTime(){
+        IGNORE_DATA.set(System.currentTimeMillis());}
 
 }

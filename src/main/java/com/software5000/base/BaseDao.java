@@ -254,8 +254,9 @@ public class BaseDao extends SqlSessionDaoSupport {
             logger.error("processing entity delete error, entity : [" + entity.getClass().getName() + "] field : [id]", e);
         }
 
-        if (fieldString.length() <= 0)
+        if (fieldString.length() <= 0) {
             throw new SQLException("can't delete data without criteria.");
+        }
         sqlString.append(fieldString.toString());
 
         Map<String, String> param = new HashMap<String, String>();
@@ -297,8 +298,9 @@ public class BaseDao extends SqlSessionDaoSupport {
             }
         }
 
-        if (fieldString.length() <= 0)
+        if (fieldString.length() <= 0) {
             throw new SQLException("can't delete data without criteria.");
+        }
         sqlString.append(fieldString.toString());
 
         Map<String, String> param = new HashMap<String, String>();
@@ -379,7 +381,7 @@ public class BaseDao extends SqlSessionDaoSupport {
         for (String fieldName : ClassUtil.getColumnNames(entity.getClass(), false, NotDatabaseField.class)) {
             try {
                 Object value = ClassUtil.getValueByField(entity, fieldName);
-                if ((isSupportBlank ? value != null : ValidUtil.isNotEmpty(value)) && !fieldName.equals("id")) {
+                if ((isSupportBlank ? value != null : ValidUtil.isNotEmpty(value)) && !"id".equals(fieldName)) {
                     if (fieldString.length() != 0) {
                         fieldString.append(",");
                     }
@@ -394,7 +396,9 @@ public class BaseDao extends SqlSessionDaoSupport {
             }
         }
         sqlString.append(fieldString.toString());
-        if (ValidUtil.isEmpty(fieldString.toString())) return;
+        if (ValidUtil.isEmpty(fieldString.toString())) {
+            return;
+        }
 
         sqlString.append(" where ");
 
@@ -431,7 +435,7 @@ public class BaseDao extends SqlSessionDaoSupport {
             for (String fieldName : ClassUtil.getColumnNames(entity.getClass(), false, NotDatabaseField.class)) {
                 try {
                     Object value = ClassUtil.getValueByField(entity, fieldName);
-                    if ((isSupportBlank ? value != null : ValidUtil.isNotEmpty(value)) && !fieldName.equals("id")) {
+                    if ((isSupportBlank ? value != null : ValidUtil.isNotEmpty(value)) && !"id".equals(fieldName)) {
                         if (fieldString.length() != 0) {
                             fieldString.append(",");
                         }
@@ -445,7 +449,9 @@ public class BaseDao extends SqlSessionDaoSupport {
                 }
             }
             sqlString.append(fieldString.toString());
-            if (ValidUtil.isEmpty(fieldString.toString())) return;
+            if (ValidUtil.isEmpty(fieldString.toString())) {
+                return;
+            }
 
             sqlString.append(" where ");
 
@@ -484,7 +490,7 @@ public class BaseDao extends SqlSessionDaoSupport {
         for (String fieldName : ClassUtil.getColumnNames(entity.getClass(), false, NotDatabaseField.class)) {
             try {
                 Object value = ClassUtil.getValueByField(entity, fieldName);
-                if ((fieldNames.contains(fieldName) ? (isSupportBlankAndNull || value != null) : ValidUtil.isNotEmpty(value)) && !fieldName.equals("id")) {
+                if ((fieldNames.contains(fieldName) ? (isSupportBlankAndNull || value != null) : ValidUtil.isNotEmpty(value)) && !"id".equals(fieldName)) {
                     if (fieldString.length() != 0) {
                         fieldString.append(",");
                     }
@@ -500,7 +506,9 @@ public class BaseDao extends SqlSessionDaoSupport {
             }
         }
         sqlString.append(fieldString.toString());
-        if (ValidUtil.isEmpty(fieldString.toString())) return;
+        if (ValidUtil.isEmpty(fieldString.toString())) {
+            return;
+        }
 
         sqlString.append(" where ");
 

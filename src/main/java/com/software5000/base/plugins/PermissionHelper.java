@@ -34,26 +34,26 @@ public class PermissionHelper implements Interceptor {
 
     private static final Log log = LogFactory.getLog(PermissionHelper.class);
 
-    private static final ThreadLocal<Long> ignorePermission = new ThreadLocal<Long>();
-    private static final ThreadLocal<Long> ignorePermissionBeginAndEnd = new ThreadLocal<>();
-    private static final ThreadLocal<String> ignorePermissionTag = new ThreadLocal<String>();
-    private static final ThreadLocal<Long> ignoreJoinTablePermissionBeginAndEnd = new ThreadLocal<>();//忽略掉子表权限
-    private static final ThreadLocal<Long> ignoreJoinTablePermission = new ThreadLocal<>();//忽略掉子表权限
+    private static final ThreadLocal<Long> IGNORE_PERMISSION = new ThreadLocal<Long>();
+    private static final ThreadLocal<Long> IGNORE_PERMISSION_BEGIN_AND_END = new ThreadLocal<>();
+    private static final ThreadLocal<String> IGNORE_PERMISSION_TAG = new ThreadLocal<String>();
+    private static final ThreadLocal<Long> IGNORE_JOIN_TABLE_PERMISSION_BEGIN_AND_END = new ThreadLocal<>();//忽略掉子表权限
+    private static final ThreadLocal<Long> IGNORE_JOIN_TABLE_PERMISSION = new ThreadLocal<>();//忽略掉子表权限
     private static int MAPPED_STATEMENT_INDEX = 0;
     private static int PARAMETER_INDEX = 1;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
-        if (ignorePermissionBeginAndEnd.get() == null) {
-            if (ignorePermission.get() == null) {
+        if (IGNORE_PERMISSION_BEGIN_AND_END.get() == null) {
+            if (IGNORE_PERMISSION.get() == null) {
                 processIntercept(invocation);
             } else {
-                ignorePermission.remove();
+                IGNORE_PERMISSION.remove();
             }
         } else {
             //同时使用则以ignorePermissionBeginAndEnd为主，并将ignorePermission抹除
-            if (ignorePermission.get() != null) {
-                ignorePermission.remove();
+            if (IGNORE_PERMISSION.get() != null) {
+                IGNORE_PERMISSION.remove();
             }
         }
 
@@ -61,36 +61,36 @@ public class PermissionHelper implements Interceptor {
     }
 
     public static void ignorePermissionThisTime() {
-        ignorePermission.set(System.currentTimeMillis());
+        IGNORE_PERMISSION.set(System.currentTimeMillis());
     }
 
     public static void ignorePermissionThisTimeBegin() {
-        ignorePermissionBeginAndEnd.set(System.currentTimeMillis());
+        IGNORE_PERMISSION_BEGIN_AND_END.set(System.currentTimeMillis());
     }
 
     public static void ignorePermissionThisTimeEnd() {
-        ignorePermissionBeginAndEnd.remove();
+        IGNORE_PERMISSION_BEGIN_AND_END.remove();
     }
 
     public static void ignoreJoinTablePermissionThisTimeBegin() {
-        ignoreJoinTablePermissionBeginAndEnd.set(System.currentTimeMillis());
+        IGNORE_JOIN_TABLE_PERMISSION_BEGIN_AND_END.set(System.currentTimeMillis());
     }
 
     public static void ignoreJoinTablePermissionThisTimeEnd() {
-        ignoreJoinTablePermissionBeginAndEnd.remove();
+        IGNORE_JOIN_TABLE_PERMISSION_BEGIN_AND_END.remove();
     }
 
     public static void ignoreJoinTablePermissionThisTime() {
-        ignoreJoinTablePermission.set(System.currentTimeMillis());
+        IGNORE_JOIN_TABLE_PERMISSION.set(System.currentTimeMillis());
     }
 
 
     public static void ignorePermissionTagSet(String tag) {
-        ignorePermissionTag.set(tag);
+        IGNORE_PERMISSION_TAG.set(tag);
     }
 
     public static void ignorePermissionTagRemove() {
-        ignorePermissionTag.remove();
+        IGNORE_PERMISSION_TAG.remove();
     }
 
     private void processIntercept(Invocation invocation) {
@@ -112,12 +112,12 @@ public class PermissionHelper implements Interceptor {
             BoundSql boundSql = ms.getBoundSql(parameter);
             String sql = boundSql.getSql().trim();
 
-            String SqlCmdTyep = ms.getSqlCommandType().name();
-            if ("update".equalsIgnoreCase(SqlCmdTyep)) {
+            String sqlCmdType = ms.getSqlCommandType().name();
+            if ("update".equalsIgnoreCase(sqlCmdType)) {
                 sql = processUpdateSql(sql, rules, principal);
-            } else if ("delete".equalsIgnoreCase(SqlCmdTyep)) {
+            } else if ("delete".equalsIgnoreCase(sqlCmdType)) {
                 sql = processDeleteSql(sql, rules, principal);
-            } else if ("select".equalsIgnoreCase(SqlCmdTyep)) {
+            } else if ("select".equalsIgnoreCase(sqlCmdType)) {
                 sql = processSelectSql(sql, rules, principal);
             }
 
@@ -178,7 +178,7 @@ public class PermissionHelper implements Interceptor {
                     }
                 }
 
-                if (ignoreJoinTablePermissionBeginAndEnd.get() == null && ignoreJoinTablePermission.get() == null) {
+                if (IGNORE_JOIN_TABLE_PERMISSION_BEGIN_AND_END.get() == null && IGNORE_JOIN_TABLE_PERMISSION.get() == null) {
                     try {
                         String joinTable = null;
                         String joinTableAlias = null;
@@ -205,8 +205,8 @@ public class PermissionHelper implements Interceptor {
                 }
             }
 
-            if (ignoreJoinTablePermission.get() != null) {
-                ignoreJoinTablePermission.remove();
+            if (IGNORE_JOIN_TABLE_PERMISSION.get() != null) {
+                IGNORE_JOIN_TABLE_PERMISSION.remove();
             }
 
             if (realRuls == null) {
@@ -251,7 +251,7 @@ public class PermissionHelper implements Interceptor {
                             break lv1;
                         }
                     }
-                    if (ignoreJoinTablePermissionBeginAndEnd.get() == null || ignoreJoinTablePermission == null) {
+                    if (IGNORE_JOIN_TABLE_PERMISSION_BEGIN_AND_END.get() == null || IGNORE_JOIN_TABLE_PERMISSION == null) {
                         for (Join j :
                                 stm.getJoins()) {
                             if (rule.getFromEntity().indexOf("," + ((Table) j.getRightItem()) + ",") != -1) {
@@ -263,8 +263,8 @@ public class PermissionHelper implements Interceptor {
                             }
                         }
                     }
-                    if (ignoreJoinTablePermission != null) {
-                        ignoreJoinTablePermission.remove();
+                    if (IGNORE_JOIN_TABLE_PERMISSION != null) {
+                        IGNORE_JOIN_TABLE_PERMISSION.remove();
                     }
                 } catch (Exception e) {
                     log.debug("当前sql没有join的部分！");
@@ -348,7 +348,7 @@ public class PermissionHelper implements Interceptor {
             for (PermissionRule rule : rules) {
                 if (rule != null) {
                     for (String roleStr : roles) {
-                        if (rule.getRoles().indexOf("," + roleStr + "_" + ignorePermissionTag.get() + ",") != -1) {
+                        if (rule.getRoles().indexOf("," + roleStr + "_" + IGNORE_PERMISSION_TAG.get() + ",") != -1) {
                             matchingMap.put("," + roleStr + "," + rule.getFromEntity(), rule);
                         } else if (rule.getRoles().indexOf("," + roleStr + ",") != -1 && matchingMap.get(rule.getRoles() + rule.getFromEntity()) == null) {
                             matchingMap.put(rule.getRoles() + rule.getFromEntity(), rule);
