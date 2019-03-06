@@ -1,8 +1,6 @@
 package com.software5000.util;
 
-import com.software5000.base.BaseDaoNew;
 import com.software5000.base.NotDatabaseField;
-import com.software5000.base.plugins.MybatisNamedParameter;
 import com.software5000.biz.entity.SystemCode;
 import com.zscp.master.util.DateUtils;
 import net.sf.jsqlparser.expression.*;
@@ -17,7 +15,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,21 +52,6 @@ public class JsqlUtils {
      * @return 字段值列表
      */
     public static ExpressionList getAllColumnValueFromEntity(Object entity, List<Column> columns) {
-
-        List<Expression> expressions = new ArrayList<>();
-        for (Column column : columns) {
-            expressions.add(new MybatisNamedParameter(BaseDaoNew.PARAM_PREFIX + "." + column.getColumnName()));
-        }
-        return new ExpressionList(expressions);
-    }
-
-    /**
-     * 获取数据库列对应实体的字段值列表
-     * @param entity 实体
-     * @param columns 数据库列
-     * @return 字段值列表
-     */
-    public static ExpressionList getAllColumnValueFromEntityNew(Object entity, List<Column> columns) {
 
         List<Expression> expressions = new ArrayList<>();
         for (Column column : columns) {
@@ -134,17 +116,7 @@ public class JsqlUtils {
      * @return 字符串
      */
     private static String transactSQLInjection(Object str) {
-        return str.toString().trim().replace("'", "").replace("\\", "\\\\").replace(";", "；");
+        return str.toString().trim().replace("'", "\\'");
     }
 
-    public static void main(String[] args) {
-        SystemCode systemCode = new SystemCode();
-        systemCode.setCodeFiter(1);
-        systemCode.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        systemCode.setCodeName("codename");
-
-        Object o = JsqlUtils.getColumnValueFromEntity(systemCode, "codeFiter");
-        System.out.printf("sss : " + o);
-
-    }
 }

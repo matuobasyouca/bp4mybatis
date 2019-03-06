@@ -33,8 +33,7 @@ import java.util.Properties;
 public class CommonDataInterceptor implements Interceptor {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("-yyyy-MM-dd HH:mm:ss.SSS-");
-    private static final SimpleDateFormat TIMESTAMP_FORMAT2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     private static final ThreadLocal<Long> IGNORE_DATA = new ThreadLocal<Long>();
 
@@ -93,6 +92,7 @@ public class CommonDataInterceptor implements Interceptor {
     private String changeInsertData(String sqls) {
 
         int createTimeIndex = -1;
+        int updateTimeIndex = -1;
         try {
             Statement stmt = CCJSqlParserUtil.parse(sqls);
             Insert insert = (Insert) stmt;
@@ -101,25 +101,22 @@ public class CommonDataInterceptor implements Interceptor {
                 if ("createTime".equalsIgnoreCase(columns.get(ci).getColumnName())) {
                     createTimeIndex = ci;
                 }
+                if ("updateTime".equalsIgnoreCase(columns.get(ci).getColumnName())) {
+                    updateTimeIndex = ci;
+                }
+
+                if (createTimeIndex > -1 && updateTimeIndex > -1) {
+                    break;
+                }
             }
             ItemsList itemList = insert.getItemsList();
             if (itemList instanceof ExpressionList) {
-                if (createTimeIndex == -1) {
-                    columns.add(new Column("createTime"));
-                    ((ExpressionList) itemList).getExpressions().add(new StringValue(TIMESTAMP_FORMAT.format(new Date())));
-                }else {
-                    ((ExpressionList) itemList).getExpressions().set(createTimeIndex, new StringValue((TIMESTAMP_FORMAT.format(new Date()))));
-//                    ((StringValue) ((ExpressionList) itemList).getExpressions().get(createTimeIndex)).setValue(TIMESTAMP_FORMAT2.format(new Date()));
-                }
-            }else if (itemList instanceof MultiExpressionList) {
-                for (ExpressionList el : ((MultiExpressionList)itemList).getExprList()
-                     ) {
-                    if (createTimeIndex == -1) {
-                        columns.add(new Column("createTime"));
-                        el.getExpressions().add(new StringValue(TIMESTAMP_FORMAT.format(new Date())));
-                    }else {
-                        el.getExpressions().set(createTimeIndex, new StringValue((TIMESTAMP_FORMAT.format(new Date()))));
-                    }
+                ((ExpressionList) itemList).getExpressions().set(createTimeIndex, new StringValue((TIMESTAMP_FORMAT.format(new Date()))));
+                ((ExpressionList) itemList).getExpressions().set(updateTimeIndex, new StringValue((TIMESTAMP_FORMAT.format(new Date()))));
+            } else if (itemList instanceof MultiExpressionList) {
+                for (ExpressionList el : ((MultiExpressionList) itemList).getExprList()) {
+                    el.getExpressions().set(createTimeIndex, new StringValue((TIMESTAMP_FORMAT.format(new Date()))));
+                    el.getExpressions().set(updateTimeIndex, new StringValue((TIMESTAMP_FORMAT.format(new Date()))));
                 }
             }
             return insert.toString();
@@ -137,9 +134,9 @@ public class CommonDataInterceptor implements Interceptor {
         for (String sql : sqls.split(";")) {
             // 简单来，直接在where之前增加一个updateTime的时间设置
             if (sql.toLowerCase().indexOf(" set ") != -1) {
-                sql = sql.replaceAll("(?i) set ", " SET updateTime = '" + TIMESTAMP_FORMAT2.format(new Date()) + "',");
+                sql = sql.replaceAll("(?i) set ", " SET updateTime = '" + TIMESTAMP_FORMAT.format(new Date()) + "',");
             } else {
-                sql = sql + ",updateTime = '" + TIMESTAMP_FORMAT2.format(new Date()) + "'";
+                sql = sql + ",updateTime = '" + TIMESTAMP_FORMAT.format(new Date()) + "'";
             }
             sb.append(sql);
             if (sb.toString().length() > 0) {
@@ -181,7 +178,8 @@ public class CommonDataInterceptor implements Interceptor {
         }
     }
 
-    public static void ignoreDataThisTime(){
-        IGNORE_DATA.set(System.currentTimeMillis());}
+    public static void ignoreDataThisTime() {
+        IGNORE_DATA.set(System.currentTimeMillis());
+    }
 
 }

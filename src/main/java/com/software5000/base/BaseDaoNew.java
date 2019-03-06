@@ -22,8 +22,6 @@ public class BaseDaoNew  extends SqlSessionDaoSupport {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public static final String PARAM_PREFIX = "p_prefix";
-
     @Override
     @Autowired
     public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
@@ -53,23 +51,10 @@ public class BaseDaoNew  extends SqlSessionDaoSupport {
 
         Map<String, Object> param = new HashMap<>();
         param.put("baseSql", insert.toString());
-        param.put(PARAM_PREFIX, entity);
-        this.insert("BaseDao.insertEntity", param);
-        logger.info(insert.toString());
+        Object o = this.insert("BaseDao.insertEntity", param);
 
+        entity.setId(Integer.valueOf(param.get("id").toString()));
         return entity;
     }
 
-    /**
-     * 模仿PreparedStatement防止sql注入
-     *
-     * @param str
-     * @return
-     */
-    private String transactSQLInjection(Object str) {
-        if (str == null) {
-            return "null";
-        }
-        return "'" + str.toString().trim().replace("'", "").replace("\\", "\\\\").replace(";", "；") + "'";
-    }
 }
