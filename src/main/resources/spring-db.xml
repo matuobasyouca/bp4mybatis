@@ -41,14 +41,14 @@
 		<property name="typeAliasesPackage" value="com.software5000.biz.entity" />
 		<property name="plugins">
 			<array>
-				<bean class="com.zscp.base.mybatis.plugins.PermissionHelper">
+				<bean class="com.software5000.base.plugins.PermissionHelper">
 				</bean>
-				<bean class="com.zscp.base.mybatis.plugins.CommonDataInterceptor">
+				<bean class="com.software5000.base.plugins.CommonDataInterceptor">
 				</bean>
 				<bean class="com.github.pagehelper.PageInterceptor">
 					<property name="properties">
 						<value>
-							dialect=mysql
+							autoDialect=mysql
 						</value>
 					</property>
 				</bean>
