@@ -4,11 +4,11 @@
 <!-- 基础封装数据库操作类，通过映射直接处理相应对象的简单读写操作 -->
 <mapper namespace="BaseDao">
 
-	<insert id="insertEntityList" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id">
+	<insert id="insertEntityList" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="list.id">
 		${baseSql}
 	</insert>
 
-	<insert id="insertEntity" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id">
+	<insert id="insertEntity" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="entity.id">
 		${baseSql}
 	</insert>
 

@@ -26,11 +26,14 @@ public class JsqlUtils {
      * 从给定的类中获取对应的数据库字段名称
      *
      * @param objClass       目标类
-     * @param withSuperclass 是否包含父类字段
      * @return 列数组
      */
-    public static List<Column> getColumnNameFromEntity(Class<?> objClass, Boolean withSuperclass) {
+    public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass) {
         List<Column> columns = new ArrayList<>();
+        /**
+         * 是否包含父类字段
+         */
+        Boolean withSuperclass = true;
 
         List<Field> fields = new ArrayList();
         if (withSuperclass) {
@@ -115,7 +118,7 @@ public class JsqlUtils {
      * @param str 待处理字符串
      * @return 字符串
      */
-    private static String transactSQLInjection(Object str) {
+    public static String transactSQLInjection(Object str) {
         return str.toString().trim().replace("'", "\\'");
     }
 

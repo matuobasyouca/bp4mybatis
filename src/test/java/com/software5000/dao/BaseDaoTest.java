@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -33,15 +34,28 @@ public class BaseDaoTest {
     public  void testSelectRecChannel(){
 
         try {
-            SystemCode systemCode = new SystemCode();
-            systemCode.setCodeFiter(1);
-            systemCode.setCreateTime(new Timestamp(System.currentTimeMillis()));
-            systemCode.setCodeName("codename ' and 1=1");
+            List<SystemCode> sc = new ArrayList<>();
 
-            baseDaoNew.insertEntity(systemCode);
+            for (int i = 0 ; i<3 ;i++) {
+                SystemCode systemCode = null;
+                systemCode = new SystemCode();
+                systemCode.setCodeFiter(1);
+                systemCode.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                systemCode.setCodeName("codename ' and 1=1");
+
+                sc.add(systemCode);
+            }
+
+            SystemCode systemCode = null;
+            systemCode = new SystemCode();
+            systemCode.setId(1);
+
+            baseDaoNew.deleteEntity(systemCode);
+//            sc = baseDaoNew.insertEntityList(sc);
 //            systemCode.setId(1);
 //            List<SystemCode> result = baseDao.selectEntity(systemCode);
 //            logger.info("show me "+ result.size());
+            logger.info("show me ");
         } catch (Exception e) {
             logger.error("query error!",e);
         }
