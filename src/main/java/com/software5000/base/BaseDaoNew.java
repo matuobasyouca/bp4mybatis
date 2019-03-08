@@ -3,6 +3,7 @@ package com.software5000.base;
 import com.software5000.util.JsqlUtils;
 import com.zscp.master.util.ClassUtil;
 import com.zscp.master.util.ValidUtil;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.MultiExpressionList;
@@ -24,8 +25,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.software5000.util.JsqlUtils.transactSQLInjection;
 
 /**
  * @author matuobasyouca@gmail.com
@@ -141,7 +140,7 @@ public class BaseDaoNew  extends SqlSessionDaoSupport {
         Delete delete = new Delete();
         delete.setTable(new Table(entityClass.getSimpleName()));
         EqualsTo equalsTo = new EqualsTo();
-        equalsTo.setLeftExpression(new Column("obj"));
+        equalsTo.setLeftExpression(new Column("id"));
         equalsTo.setRightExpression(new LongValue(id));
         delete.setWhere(equalsTo);
 
@@ -192,48 +191,16 @@ public class BaseDaoNew  extends SqlSessionDaoSupport {
 
         Update update = new Update();
         update.setTables(Arrays.asList(new Table(entity.getClass().getSimpleName())));
+        Object[] colsAndValues = JsqlUtils.getNotEmptyColumnAndValueFromEntity(entity, isSupportBlank);
+        update.setColumns((List<Column>) colsAndValues[0]);
+        update.setExpressions((List<Expression>) colsAndValues[1]);
+        EqualsTo equalsTo = new EqualsTo();
+        equalsTo.setLeftExpression(new Column("id"));
+        equalsTo.setRightExpression(new LongValue(entity.getId()));
+        update.setWhere(equalsTo);
 
-//        insert.setColumns(JsqlUtils.getAllColumnNamesFromEntity(entity.getClass()));
-//        insert.setItemsList(JsqlUtils.getAllColumnValueFromEntity(entity,insert.getColumns()));
-
-
-        StringBuilder sqlString = new StringBuilder();
-        sqlString.append(" update ");
-        sqlString.append(entity.getClass().getSimpleName()); //tablename
-        sqlString.append(" set ");
-
-        StringBuilder fieldString = new StringBuilder();
-        for (String fieldName : ClassUtil.getColumnNames(entity.getClass(), false, NotDatabaseField.class)) {
-            try {
-                Object value = ClassUtil.getValueByField(entity, fieldName);
-                if ((isSupportBlank ? value != null : ValidUtil.isNotEmpty(value)) && !"id".equals(fieldName)) {
-                    if (fieldString.length() != 0) {
-                        fieldString.append(",");
-                    }
-                    fieldString.append(fieldName);  // fieldname
-                    fieldString.append("= ");
-                    fieldString.append(transactSQLInjection(value.toString()));
-                    fieldString.append(" ");
-                }
-            } catch (Exception e) {
-                logger.error("processing entity update error, entity : [" + entity.getClass().getName() + "] field : [" + fieldName + "]", e);
-//                sqlString.append("null");
-            }
-        }
-        sqlString.append(fieldString.toString());
-        if (ValidUtil.isEmpty(fieldString.toString())) {
-            return 0;
-        }
-
-        sqlString.append(" where ");
-
-        // 过滤条件只能为ID
-        sqlString.append(" id='");
-        sqlString.append(entity.getId());
-        sqlString.append("' ");
-
-        Map<String, String> param = new HashMap<String, String>();
-        param.put("baseSql", sqlString.toString());
+        Map<String, String> param = new HashMap<>(1);
+        param.put("baseSql", update.toString());
         return this.update("BaseDao.updateEntity", param);
     }
 

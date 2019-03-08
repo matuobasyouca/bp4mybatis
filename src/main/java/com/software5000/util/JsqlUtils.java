@@ -3,6 +3,8 @@ package com.software5000.util;
 import com.software5000.base.NotDatabaseField;
 import com.software5000.biz.entity.SystemCode;
 import com.zscp.master.util.DateUtils;
+import com.zscp.master.util.StringUtil;
+import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
@@ -25,7 +27,7 @@ public class JsqlUtils {
     /**
      * 从给定的类中获取对应的数据库字段名称
      *
-     * @param objClass       目标类
+     * @param objClass 目标类
      * @return 列数组
      */
     public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass) {
@@ -50,7 +52,8 @@ public class JsqlUtils {
 
     /**
      * 获取数据库列对应实体的字段值列表
-     * @param entity 实体
+     *
+     * @param entity  实体
      * @param columns 数据库列
      * @return 字段值列表
      */
@@ -61,6 +64,30 @@ public class JsqlUtils {
             expressions.add(JsqlUtils.getColumnValueFromEntity(entity, column.getColumnName()));
         }
         return new ExpressionList(expressions);
+    }
+
+    /**
+     * 获取数据库列对应实体的字段列和值列表数组
+     *
+     * @param entity 实体
+     * @return 对象数组2个值，结果1：有值的列；结果2：对应顺序列的值
+     */
+    public static Object[] getNotEmptyColumnAndValueFromEntity(Object entity, boolean isSupportBlank) {
+        List<Column> columns = getAllColumnNamesFromEntity(entity.getClass());
+        List<Column> resultColumns = new ArrayList<>();
+        List<Expression> expressions = new ArrayList<>();
+
+        for (Column column : columns) {
+            Expression expression = JsqlUtils.getColumnValueFromEntity(entity, column.getColumnName());
+            // id和null不接收
+            if(expression instanceof NullValue || "id".equals(column.getColumnName()) || (expression instanceof StringValue && !isSupportBlank && ValidUtil.valid(expression))){
+                continue;
+            }
+
+            resultColumns.add(column);
+            expressions.add(JsqlUtils.getColumnValueFromEntity(entity, column.getColumnName()));
+        }
+        return new Object[]{resultColumns, expressions};
     }
 
     /**
@@ -88,6 +115,7 @@ public class JsqlUtils {
 
     /**
      * 根据字段值的实际类型转换为JSqlParser中的标准类型
+     *
      * @param value 字段值
      * @return JSqlParser中的标准类型值
      */
@@ -108,18 +136,10 @@ public class JsqlUtils {
             // A Date in the form {d 'yyyy-mm-dd'}
             return new DateValue(DateUtils.formatDate((java.sql.Date) value, "yyyy-MM-dd"));
         } else {
-            return new StringValue(JsqlUtils.transactSQLInjection(String.valueOf(value)));
+            // 字符串要做防注入处理
+            return new StringValue(String.valueOf(value).trim().replace("'", "\\'"));
         }
     }
 
-    /**
-     * 模仿PreparedStatement防止sql注入
-     *
-     * @param str 待处理字符串
-     * @return 字符串
-     */
-    public static String transactSQLInjection(Object str) {
-        return str.toString().trim().replace("'", "\\'");
-    }
 
 }
