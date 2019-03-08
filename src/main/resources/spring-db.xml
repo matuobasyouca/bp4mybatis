@@ -91,7 +91,7 @@
 
 
 	<!-- Flyway configuration
-    <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="${FlyWay_init_method}">
+    <bean obj="flyway" class="org.flywaydb.core.Flyway" init-method="${FlyWay_init_method}">
 		<property name="baselineOnMigrate" value="true" />
 		<property name="locations" value="classpath:db/migrate/" />
 		<property name="dataSource" ref="dataSourceMaster" />

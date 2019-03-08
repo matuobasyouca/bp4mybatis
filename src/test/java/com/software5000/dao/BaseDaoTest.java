@@ -50,7 +50,7 @@ public class BaseDaoTest {
             systemCode = new SystemCode();
             systemCode.setId(1);
 
-            baseDaoNew.deleteEntity(systemCode);
+//            baseDaoNew.deleteEntity(systemCode);
 //            sc = baseDaoNew.insertEntityList(sc);
 //            systemCode.setId(1);
 //            List<SystemCode> result = baseDao.selectEntity(systemCode);
