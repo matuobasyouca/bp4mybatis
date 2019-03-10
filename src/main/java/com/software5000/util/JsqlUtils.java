@@ -1,16 +1,14 @@
 package com.software5000.util;
 
+import com.google.common.base.CaseFormat;
+import com.software5000.base.BaseDaoNew;
 import com.software5000.base.NotDatabaseField;
-import com.software5000.biz.entity.SystemCode;
 import com.zscp.master.util.DateUtils;
-import com.zscp.master.util.StringUtil;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,8 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class JsqlUtils {
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      * 从给定的类中获取对应的数据库字段名称
@@ -46,22 +42,14 @@ public class JsqlUtils {
 
 
     public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames) {
-        /**
-         * 是否包含父类字段
-         */
-        Boolean withSuperclass = true;
-
         List<Field> fields = new ArrayList();
-        if (withSuperclass) {
-            fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
-        }
-
+        fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
         fields.addAll(Arrays.asList(objClass.getDeclaredFields()));
 
         return fields.stream()
                 .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
                 .filter(e -> ValidUtil.valid(exceptColumnNames) ? !exceptColumnNames.contains(e.getName()) : true)
-                .map(f -> new Column(f.getName()))
+                .map(f -> new Column(JsqlUtils.transCamelToSnake(f.getName())))
                 .collect(Collectors.toList());
 
     }
@@ -94,6 +82,10 @@ public class JsqlUtils {
     public static Object[] getNamedColumnAndValueFromEntity(Object entity, Column[] namedCols, boolean isSupportBlank, boolean isSupportNull) {
         List<Column> resultColumns = new ArrayList<>();
         List<Expression> expressions = new ArrayList<>();
+        if (!ValidUtil.valid(namedCols)) {
+            namedCols = new Column[0];
+            namedCols = getAllColumnNamesFromEntity(entity.getClass()).toArray(namedCols);
+        }
 
         for (Column column : namedCols) {
             Expression expression = JsqlUtils.getColumnValueFromEntity(entity, column.getColumnName());
@@ -104,7 +96,7 @@ public class JsqlUtils {
             }
 
             // 确认空字符串接收
-            if (expression instanceof StringValue && !isSupportBlank && ValidUtil.valid(expression)) {
+            if (expression instanceof StringValue && !isSupportBlank && !ValidUtil.valid(expression)) {
                 continue;
             }
 
@@ -123,6 +115,9 @@ public class JsqlUtils {
      * @return 单个字段值
      */
     public static Expression getColumnValueFromEntity(Object entity, String fieldName) {
+        if (fieldName.indexOf("_") != -1) {
+            fieldName = JsqlUtils.transSnakeToCamel(fieldName);
+        }
         Object returnValue;
         try {
             try {
@@ -181,4 +176,21 @@ public class JsqlUtils {
         return equalsTo;
     }
 
+    /**
+     * 骆驼转蛇
+     *
+     * @return 转换后的字符串
+     */
+    public static String transCamelToSnake(String name) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
+    }
+
+    /**
+     * 蛇转骆驼
+     *
+     * @return 转换后的字符串
+     */
+    public static String transSnakeToCamel(String name) {
+        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name);
+    }
 }

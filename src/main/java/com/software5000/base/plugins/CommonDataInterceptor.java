@@ -1,5 +1,6 @@
 package com.software5000.base.plugins;
 
+import com.software5000.util.JsqlUtils;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.TimestampValue;
@@ -20,12 +21,10 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author 605162215@qq.com
@@ -34,8 +33,8 @@ import java.util.stream.Collectors;
 @Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})})
 public class CommonDataInterceptor implements Interceptor {
 
-    public static final String UPDATE_TIME_FIELD_NAME = "updateTime";
-    public static final String CREATE_TIME_FIELD_NAME = "createTime";
+    public static final String UPDATE_TIME_FIELD_NAME = JsqlUtils.transCamelToSnake("updateTime");
+    public static final String CREATE_TIME_FIELD_NAME = JsqlUtils.transCamelToSnake("createTime");
     public static final String ID_FIELD_NAME = "id";
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -151,7 +150,7 @@ public class CommonDataInterceptor implements Interceptor {
                 update.getColumns().removeAll(removedColumns);
                 update.getExpressions().removeAll(removedExpression);
 
-                update.getColumns().add(new Column("updateTime"));
+                update.getColumns().add(new Column(UPDATE_TIME_FIELD_NAME));
                 update.getExpressions().add(new TimestampValue(String.valueOf(TIMESTAMP_FORMAT.format(new Date(System.currentTimeMillis())))));
                 return parse.toString();
             }

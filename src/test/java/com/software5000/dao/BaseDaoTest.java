@@ -1,6 +1,7 @@
 package com.software5000.dao;
 
 
+import com.google.common.base.CaseFormat;
 import com.software5000.base.BaseDao;
 import com.software5000.base.BaseDaoNew;
 import com.software5000.base.jsql.AndExpressionList;
@@ -63,36 +64,20 @@ public class BaseDaoTest {
 
             SystemCode systemCode = null;
             systemCode = new SystemCode();
-            systemCode.setId(5);
+            systemCode.setId(2);
             systemCode.setCodeName("insert into fxxk your name is '' where 1=1 ; sho");
             systemCode.setUpdateTime(null);
             systemCode.setCreateTime(null);
-
-            String sql = "UPDATE SystemCode SET codeName = 'my name is \\'\\' where 1=1 ; sho' WHERE id = 2";
-            Statement parse = CCJSqlParserUtil.parse(sql);
-
-            PlainSelect plainSelect = new PlainSelect();
-            plainSelect.setSelectItems(Arrays.asList(new AllColumns()));
-            plainSelect.setFromItem(new Table(SystemCode.class.getSimpleName()));
-            plainSelect.getWhere();
-
-            plainSelect.setWhere(
-                    new AndExpressionList()
-                            .append(JsqlUtils.equalTo(new Column("id"), new LongValue(systemCode.getId())))
-                            .append(JsqlUtils.equalTo(new Column("codeType"), new NullValue()))
-                            .get()
-            );
-
-
-//            Object[] result = JsqlUtils.getNotEmptyColumnAndValueFromEntity(systemCode, true);
-
-
 //            plainSelect.setIntoTables(Arrays.asList(new Table(SystemCode.class.getSimpleName())));
-            logger.info(plainSelect.toString());
             long t2 = System.currentTimeMillis();
             logger.info("============> time is : "+(t2-t1));
 
-            baseDaoNew.updateEntity(systemCode);
+//            sc = baseDaoNew.selectEntity(systemCode);
+            logger.info(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "SystemCode"));
+            logger.info(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "SYSTEMCODE"));
+            logger.info(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "systemCode"));
+
+//            baseDaoNew.updateEntity(systemCode);
 //            String s = "UPDATE SystemCode SET codeName = 'fxxk your name is \\'\\' where 1=1 ; sho', updateTime = {ts '2019-03-10 09:24:44.773'} WHERE 1 = 1 AND id = 4 ";
 //            baseDaoNew.update("BaseDao.updateEntity", new HashMap<String, String>() {{
 //                put("baseSql", s.toString());
@@ -100,8 +85,10 @@ public class BaseDaoTest {
 //            baseDaoNew.deleteEntity(systemCode);
 //            sc = baseDaoNew.insertEntityList(sc);
 //            systemCode.setId(1);
-//            List<SystemCode> result = baseDao.selectEntity(systemCode);
-//            logger.info("show me "+ result.size());
+            String ordreBy = "codeType asc,id desc";
+//            Statement s = CCJSqlParserUtil.parse(ordreBy);
+            List<SystemCode> result = baseDaoNew.selectEntity(systemCode);
+            logger.info("show me "+ result.size());
             long t3 = System.currentTimeMillis();
             logger.info("============> time is : "+(t3-t2));
         } catch (Exception e) {

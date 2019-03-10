@@ -1,22 +1,22 @@
 package com.software5000.base;
 
+import com.github.pagehelper.Page;
 import com.software5000.base.jsql.AndExpressionList;
 import com.software5000.util.JsqlUtils;
-import com.zscp.master.util.ArrayUtil;
 import com.zscp.master.util.ClassUtil;
 import com.zscp.master.util.ValidUtil;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.MultiExpressionList;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -36,6 +36,12 @@ import java.util.*;
 public class BaseDaoNew extends SqlSessionDaoSupport {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    /**
+     * 默认的数据库结构为 snake (a_b_c),代码中会将骆驼转换为蛇形
+     * 如果数据库结果默认为 camel,则本变量设置为false
+     */
+    public final static boolean DB_SCHEMES_SNAKE_TYPE = true;
 
     @Override
     @Autowired
@@ -65,7 +71,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      */
     public <T extends BaseEntity> T insertEntity(T entity) {
         Insert insert = new Insert();
-        insert.setTable(new Table(entity.getClass().getSimpleName()));
+        insert.setTable(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName())));
         insert.setColumns(JsqlUtils.getAllColumnNamesFromEntity(entity.getClass()));
         insert.setItemsList(JsqlUtils.getAllColumnValueFromEntity(entity, insert.getColumns()));
 
@@ -90,7 +96,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         }
 
         Insert insert = new Insert();
-        insert.setTable(new Table(entities.get(0).getClass().getSimpleName()));
+        insert.setTable(new Table(JsqlUtils.transCamelToSnake(entities.get(0).getClass().getSimpleName())));
         insert.setColumns(JsqlUtils.getAllColumnNamesFromEntity(entities.get(0).getClass()));
         MultiExpressionList multiExpressionList = new MultiExpressionList();
         entities.stream().map(e -> JsqlUtils.getAllColumnValueFromEntity(e, insert.getColumns())).forEach(multiExpressionList::addExpressionList);
@@ -137,7 +143,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      */
     public <T extends BaseEntity> int deleteEntity(Integer id, Class<T> entityClass) {
         Delete delete = new Delete();
-        delete.setTable(new Table(entityClass.getSimpleName()));
+        delete.setTable(new Table(JsqlUtils.transCamelToSnake(entityClass.getSimpleName())));
         EqualsTo equalsTo = new EqualsTo();
         equalsTo.setLeftExpression(new Column("id"));
         equalsTo.setRightExpression(new LongValue(id));
@@ -148,7 +154,6 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         return this.delete("BaseDao.deleteEntity", param);
     }
     // endregion
-
 
     // region update 方法块
 
@@ -170,6 +175,17 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @return 影响行数
      */
     public int updateEntity(BaseEntity entity) throws SQLException {
+        return updateEntityOnlyHaveValue(entity, true);
+    }
+
+    /**
+     * 简单更新实体对象
+     *
+     * @param entity 实体对象
+     * @return 影响行数
+     */
+    public int updateEntityCustom(BaseEntity entity) throws SQLException {
+        //TODO 这里应该是要带指定参数和条件进行更新的方法，待处理
         return updateEntityOnlyHaveValue(entity, true);
     }
 
@@ -214,8 +230,8 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         }
 
         Update update = new Update();
-        update.setTables(Arrays.asList(new Table(entity.getClass().getSimpleName())));
-        Object[] colsAndValuesForValues = JsqlUtils.getNamedColumnAndValueFromEntity(entity, valueCols, isSupportBlank,false);
+        update.setTables(Arrays.asList(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName()))));
+        Object[] colsAndValuesForValues = JsqlUtils.getNamedColumnAndValueFromEntity(entity, valueCols, isSupportBlank, false);
         update.setColumns((List<Column>) colsAndValuesForValues[0]);
         update.setExpressions((List<Expression>) colsAndValuesForValues[1]);
 
@@ -254,7 +270,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @param entity
      * @throws SQLException
      */
-    public <T extends BaseEntity> List<T> selectEntity(T entity) throws SQLException {
+    public <T extends BaseEntity> List<T> selectEntity(T entity) throws SQLException, JSQLParserException {
         return selectEntity(entity, null);
     }
 
@@ -264,54 +280,32 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @param entity
      * @throws SQLException
      */
-    public <T extends BaseEntity> List<T> selectEntity(T entity, String ordreBy) throws SQLException {
+    public <T extends BaseEntity> List<T> selectEntity(T entity, String ordreBy) throws SQLException, JSQLParserException {
         PlainSelect plainSelect = new PlainSelect();
-        plainSelect.setIntoTables(Arrays.asList(new Table(entity.getClass().getSimpleName())));
-//        select
+        plainSelect.setSelectItems(Arrays.asList(new AllColumns()));
+        plainSelect.setFromItem(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName())));
+//        CCJSqlParserUtil.parse(ordreBy);
+//        plainSelect.setOrderByElements();
+        AndExpressionList andExpressionList = new AndExpressionList();
+        Object[] colsAndValues = JsqlUtils.getNamedColumnAndValueFromEntity(entity, null, false, false);
 
-        StringBuilder sqlString = new StringBuilder();
-        sqlString.append(" select ");
-        sqlString.append(ClassUtil.getColumnNamesAsString(entity.getClass(), true, NotDatabaseField.class));  // fieldname
-        sqlString.append(" from ");
-        sqlString.append(entity.getClass().getSimpleName()); //tablename
-        sqlString.append(" where 1=1 ");
-
-        StringBuilder fieldString = new StringBuilder();
-
-        for (String fieldName : ClassUtil.getColumnNames(entity.getClass(), true, NotDatabaseField.class)) {
-            try {
-                // 因为creatTime由BaseEntity负责生成所以默认会带值
-                if ("createTime".equals(fieldName)) {
-                    continue;
-                }
-                Object value = ClassUtil.getValueByField(entity, fieldName);
-
-                if (!ValidUtil.isEmpty(value)) {
-                    fieldString.append(" AND ");
-                    fieldString.append(fieldName + "=");  // fieldname
-                    fieldString.append((value.toString()));
-                    fieldString.append(" ");
-                }
-            } catch (Exception e) {
-                logger.error("processing entity select error, entity : [" + entity.getClass().getName() + "] field : [" + fieldName + "]", e);
-            }
+        for (int i = 0; i < ((List) colsAndValues[0]).size(); i++) {
+            andExpressionList.append(JsqlUtils.equalTo((Column) ((List) colsAndValues[0]).get(i), (Expression) ((List) colsAndValues[1]).get(i)));
         }
 
-        sqlString.append(fieldString.toString());
-        if (!ValidUtil.isEmpty(ordreBy)) {
-            sqlString.append(" ORDER BY ");
-            sqlString.append(ordreBy);
-        }
+        plainSelect.setWhere(andExpressionList.get());
 
-        Map<String, String> param = new HashMap<>();
-        param.put("baseSql", sqlString.toString());
-        List lastResult = (List) this.selectList("BaseDao.selectEntity", param);
+
+        List lastResult = this.selectList("BaseDao.selectEntity", new HashMap<String, String>() {{
+            put("baseSql", plainSelect.toString());
+        }});
+
         List<?> result = null;
-//        if (lastResult instanceof Page) {
-//            result = ((Page) lastResult).getResult();
-//        } else {
-//            result = lastResult;
-//        }
+        if (lastResult instanceof Page) {
+            result = ((Page) lastResult).getResult();
+        } else {
+            result = lastResult;
+        }
         List<BaseEntity> tempList = new ArrayList<>();
         for (Object sr : result) {
             try {
@@ -326,12 +320,12 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
                 logger.error("processing entity setter value error, entity : [" + entity.getClass().getName() + "] ", e);
             }
         }
-//        if (lastResult instanceof Page) {
-//            ((Page) lastResult).getResult().clear();
-//            ((Page) lastResult).getResult().addAll(tempList);
-//        } else {
-//            lastResult = tempList;
-//        }
+        if (lastResult instanceof Page) {
+            ((Page) lastResult).getResult().clear();
+            ((Page) lastResult).getResult().addAll(tempList);
+        } else {
+            lastResult = tempList;
+        }
         return lastResult;
     }
 

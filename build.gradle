@@ -53,7 +53,8 @@ dependencies {
             "com.github.pagehelper:pagehelper:5.1.8",
             "com.alibaba:fastjson:1.2.29",
 
-            "com.zscp:masterutil:1.0-SNAPSHOT"
+            "com.zscp:masterutil:1.0-SNAPSHOT",
+            "com.google.guava:guava:27.0.1-jre"
 
     )
 
