@@ -6,7 +6,7 @@
         <!-- 日志备份目录 -->
         <property name="BACKUP_HOME">./backup</property>
         <property name="STAT_NAME">tech</property>
-        <property name="SERVER_NAME">bp4mybatis</property>
+        <property name="SERVER_NAME">bp4mybatis.log</property>
     </properties>
     <appenders>
         <!-- 定义控制台输出 -->

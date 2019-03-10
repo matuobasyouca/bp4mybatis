@@ -6,6 +6,7 @@ import com.zscp.master.util.DateUtils;
 import com.zscp.master.util.StringUtil;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -31,7 +33,19 @@ public class JsqlUtils {
      * @return 列数组
      */
     public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass) {
-        List<Column> columns = new ArrayList<>();
+        /**
+         * 是否包含父类字段
+         */
+
+        List<Field> fields = new ArrayList();
+        fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
+        fields.addAll(Arrays.asList(objClass.getDeclaredFields()));
+
+        return JsqlUtils.getAllColumnNamesFromEntityExceptSome(objClass, null);
+    }
+
+
+    public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames) {
         /**
          * 是否包含父类字段
          */
@@ -44,9 +58,11 @@ public class JsqlUtils {
 
         fields.addAll(Arrays.asList(objClass.getDeclaredFields()));
 
-        return fields.stream().filter((f) -> {
-            return f.getAnnotation(NotDatabaseField.class) == null;
-        }).map(f -> new Column(f.getName())).collect(Collectors.toList());
+        return fields.stream()
+                .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
+                .filter(e -> ValidUtil.valid(exceptColumnNames) ? !exceptColumnNames.contains(e.getName()) : true)
+                .map(f -> new Column(f.getName()))
+                .collect(Collectors.toList());
 
     }
 
@@ -67,26 +83,35 @@ public class JsqlUtils {
     }
 
     /**
-     * 获取数据库列对应实体的字段列和值列表数组
+     * 获取指定的列以及对应的值
      *
-     * @param entity 实体
+     * @param entity         带值实体
+     * @param namedCols      指定列
+     * @param isSupportBlank 是否包含空字符值的列，true为包含
+     * @param isSupportNull  是否包含Null值的列，true为包含
      * @return 对象数组2个值，结果1：有值的列；结果2：对应顺序列的值
      */
-    public static Object[] getNotEmptyColumnAndValueFromEntity(Object entity, boolean isSupportBlank) {
-        List<Column> columns = getAllColumnNamesFromEntity(entity.getClass());
+    public static Object[] getNamedColumnAndValueFromEntity(Object entity, Column[] namedCols, boolean isSupportBlank, boolean isSupportNull) {
         List<Column> resultColumns = new ArrayList<>();
         List<Expression> expressions = new ArrayList<>();
 
-        for (Column column : columns) {
+        for (Column column : namedCols) {
             Expression expression = JsqlUtils.getColumnValueFromEntity(entity, column.getColumnName());
-            // id和null不接收
-            if(expression instanceof NullValue || "id".equals(column.getColumnName()) || (expression instanceof StringValue && !isSupportBlank && ValidUtil.valid(expression))){
+
+            // 确认null是否接收
+            if (!isSupportNull && expression instanceof NullValue) {
+                continue;
+            }
+
+            // 确认空字符串接收
+            if (expression instanceof StringValue && !isSupportBlank && ValidUtil.valid(expression)) {
                 continue;
             }
 
             resultColumns.add(column);
             expressions.add(JsqlUtils.getColumnValueFromEntity(entity, column.getColumnName()));
         }
+
         return new Object[]{resultColumns, expressions};
     }
 
@@ -124,9 +149,10 @@ public class JsqlUtils {
             return new NullValue();
         }
 
-        if (value instanceof Double) {
+        if (value instanceof Double || value instanceof Float) {
             return new DoubleValue(String.valueOf(value));
-        } else if (value instanceof Long) {
+        } else if (value instanceof Long || value instanceof Short
+                || value instanceof Integer || value instanceof BigInteger) {
             return new LongValue(String.valueOf(value));
         } else if (value instanceof Timestamp) {
             return new TimestampValue(String.valueOf(value));
@@ -141,5 +167,18 @@ public class JsqlUtils {
         }
     }
 
+    /**
+     * 返回一个等式过滤条件
+     *
+     * @param column 列名
+     * @param value  值
+     * @return 等式过滤条件 如 1=1
+     */
+    public static Expression equalTo(Column column, Expression value) {
+        EqualsTo equalsTo = new EqualsTo();
+        equalsTo.setLeftExpression(column);
+        equalsTo.setRightExpression(value);
+        return equalsTo;
+    }
 
 }
