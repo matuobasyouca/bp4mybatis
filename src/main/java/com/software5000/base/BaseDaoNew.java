@@ -70,7 +70,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @param entity 实体对象
      * @return 带id的插入对象
      */
-    public <T extends BaseEntity> T insertEntity(T entity) {
+    public <T extends BaseEntity> T insertEntity(T entity) throws SQLException {
         Insert insert = new Insert();
         insert.setTable(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName())));
         insert.setColumns(JsqlUtils.getAllColumnNamesFromEntity(entity.getClass()));
@@ -185,9 +185,11 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @param entity 实体对象
      * @return 影响行数
      */
-    public int updateEntityCustom(BaseEntity entity) throws SQLException {
-        //TODO 这里应该是要带指定参数和条件进行更新的方法，待处理
-        return updateEntityOnlyHaveValue(entity, true);
+    public int updateEntityWithNamedQueryColumn(BaseEntity entity, String queryColumns) throws SQLException {
+        List<Column> valueColumns = JsqlUtils.getAllColumnNamesFromEntityExceptSome(entity.getClass(), Arrays.asList(queryColumns.split(",")));
+        List<Column> conditionCols = JsqlUtils.getAllColumnNamesFromEntityWithNames(entity.getClass(), Arrays.asList(queryColumns.split(",")));
+        return updateEntityWithNamedColumns(valueColumns, conditionCols,
+                entity, true);
     }
 
     /**
@@ -207,8 +209,8 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
                 JsqlUtils.getAllColumnNamesFromEntityExceptSome(
                         entity.getClass(),
                         Arrays.asList(new String[]{"id"})
-                ).toArray(new Column[]{}),
-                new Column[]{new Column("id")},
+                ),
+                Arrays.asList(new Column("id")),
                 entity,
                 true
         );
@@ -225,7 +227,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @return 影响行数
      * @throws SQLException
      */
-    public int updateEntityWithNamedColumns(Column[] valueCols, Column[] conditionCols, BaseEntity entity, boolean isSupportBlank) throws SQLException {
+    public int updateEntityWithNamedColumns(List<Column> valueCols, List<Column> conditionCols, BaseEntity entity, boolean isSupportBlank) throws SQLException {
         if (!ValidUtil.valid(conditionCols)) {
             throw new SQLException("can't update data without value of condition columns.");
         }
@@ -237,7 +239,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         update.setExpressions((List<Expression>) colsAndValuesForValues[1]);
 
         AndExpressionList andExpressionList = new AndExpressionList();
-        Arrays.stream(conditionCols)
+        conditionCols
                 .forEach(e -> andExpressionList.append(JsqlUtils.equalTo(e, JsqlUtils.getColumnValueFromEntity(entity, e.getColumnName()))));
 
         update.setWhere(andExpressionList.get());
@@ -305,8 +307,16 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
     }
 
 
+    /**
+     * 利用结果集填充对应实体
+     *
+     * @param entity     参数实体，用于新建结果实体类
+     * @param lastResult sql查询的结果集
+     * @param <T>        BaseEntity类型
+     * @return 返回填充后的实体列表
+     */
     private <T extends BaseEntity> List<T> fillEntities(T entity, List lastResult) {
-        List<?> result = null;
+        List<?> result;
         if (lastResult instanceof Page) {
             result = ((Page) lastResult).getResult();
         } else {
@@ -318,7 +328,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
                 BaseEntity singleResult = (BaseEntity) Class.forName(entity.getClass().getName()).newInstance();
 
                 for (String key : ((Map<String, Object>) sr).keySet()) {
-                    ClassUtil.setValueByField(singleResult, key, ((Map<String, Object>) sr).get(key));
+                    ClassUtil.setValueByField(singleResult, JsqlUtils.transSnakeToCamel(key), ((Map<String, Object>) sr).get(key));
                 }
 
                 tempList.add(singleResult);

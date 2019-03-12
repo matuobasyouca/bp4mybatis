@@ -64,8 +64,9 @@ public class BaseDaoTest {
 
             SystemCode systemCode = null;
             systemCode = new SystemCode();
-            systemCode.setId(2);
-            systemCode.setCodeName("insert into fxxk your name is '' where 1=1 ; sho");
+            systemCode.setId(1);
+            systemCode.setCodeName("insert into 2fxxk your name is '' where 1=1 ; sho");
+            systemCode.setCodeFiter(15);
             systemCode.setUpdateTime(null);
             systemCode.setCreateTime(null);
 //            plainSelect.setIntoTables(Arrays.asList(new Table(SystemCode.class.getSimpleName())));
@@ -74,10 +75,12 @@ public class BaseDaoTest {
 
 //            sc = baseDaoNew.selectEntity(systemCode);
             logger.info(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "SystemCode"));
+            logger.info(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "SystemCode"));
             logger.info(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "SYSTEMCODE"));
             logger.info(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "systemCode"));
 
 //            baseDaoNew.updateEntity(systemCode);
+            baseDaoNew.updateEntityWithNamedQueryColumn(systemCode,"id,codeName");
 //            String s = "UPDATE SystemCode SET codeName = 'fxxk your name is \\'\\' where 1=1 ; sho', updateTime = {ts '2019-03-10 09:24:44.773'} WHERE 1 = 1 AND id = 4 ";
 //            baseDaoNew.update("BaseDao.updateEntity", new HashMap<String, String>() {{
 //                put("baseSql", s.toString());
@@ -87,7 +90,7 @@ public class BaseDaoTest {
 //            systemCode.setId(1);
             String ordreBy = "codeType asc,id desc";
 //            Statement s = CCJSqlParserUtil.parse(ordreBy);
-            List<SystemCode> result = baseDaoNew.selectEntity(systemCode);
+            List<SystemCode> result = baseDaoNew.selectEntity(systemCode,"id desc,updateTime asc");
             logger.info("show me "+ result.size());
             long t3 = System.currentTimeMillis();
             logger.info("============> time is : "+(t3-t2));

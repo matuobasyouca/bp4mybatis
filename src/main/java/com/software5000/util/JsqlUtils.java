@@ -1,11 +1,8 @@
 package com.software5000.util;
 
 import com.google.common.base.CaseFormat;
-import com.software5000.base.BaseDaoNew;
 import com.software5000.base.NotDatabaseField;
 import com.zscp.master.util.DateUtils;
-import com.zscp.master.util.RegUtil;
-import com.zscp.master.util.StringUtil;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
@@ -16,6 +13,7 @@ import net.sf.jsqlparser.statement.select.OrderByElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -26,12 +24,17 @@ import java.util.stream.Collectors;
 public class JsqlUtils {
 
     /**
+     * 默认的排序为正向排序
+     */
+    private static final String defaultAsc = "asc";
+
+    /**
      * 从给定的类中获取对应的数据库字段名称
      *
      * @param objClass 目标类
      * @return 列数组
      */
-    public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass) {
+    public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass)  {
         /**
          * 是否包含父类字段
          */
@@ -44,17 +47,42 @@ public class JsqlUtils {
     }
 
 
-    public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames) {
-        List<Field> fields = new ArrayList();
-        fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
-        fields.addAll(Arrays.asList(objClass.getDeclaredFields()));
+    public static List<Column> getAllColumnNamesFromEntityWithNames(Class<?> objClass, List<String> namedColumnNames)  {
+        return getAllFieldsFromClass(objClass, namedColumnNames).stream()
+                .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
+                .filter(e -> ValidUtil.valid(namedColumnNames) ? namedColumnNames.contains(e.getName()) : false)
+                .map(f -> new Column(JsqlUtils.transCamelToSnake(f.getName())))
+                .collect(Collectors.toList());
 
-        return fields.stream()
+    }
+
+    public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames)  {
+        return getAllFieldsFromClass(objClass, exceptColumnNames).stream()
                 .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
                 .filter(e -> ValidUtil.valid(exceptColumnNames) ? !exceptColumnNames.contains(e.getName()) : true)
                 .map(f -> new Column(JsqlUtils.transCamelToSnake(f.getName())))
                 .collect(Collectors.toList());
 
+    }
+
+    private static List<Field> getAllFieldsFromClass(Class<?> objClass, List<String> exceptColumnNames)  {
+        List<Field> fields = new ArrayList();
+        fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
+        fields.addAll(Arrays.asList(objClass.getDeclaredFields()));
+
+        if (checkColumnNameNotExists(fields, exceptColumnNames)) {
+            throw new JsqlFieldException("the fieldname : ["+exceptColumnNames+"] not exist in class ["+objClass.getName()+"]");
+        }
+
+        return fields;
+    }
+
+    private static boolean checkColumnNameNotExists(List<Field> fields, List<String> columnNames) {
+        if (!ValidUtil.valid(columnNames)) {
+            return false;
+        }
+        List<String> fieldNames = fields.stream().map(f -> f.getName()).collect(Collectors.toList());
+        return columnNames.stream().anyMatch(e -> !fieldNames.contains(e));
     }
 
     /**
@@ -64,7 +92,7 @@ public class JsqlUtils {
      * @param columns 数据库列
      * @return 字段值列表
      */
-    public static ExpressionList getAllColumnValueFromEntity(Object entity, List<Column> columns) {
+    public static ExpressionList getAllColumnValueFromEntity(Object entity, List<Column> columns)  {
 
         List<Expression> expressions = new ArrayList<>();
         for (Column column : columns) {
@@ -82,12 +110,11 @@ public class JsqlUtils {
      * @param isSupportNull  是否包含Null值的列，true为包含
      * @return 对象数组2个值，结果1：有值的列；结果2：对应顺序列的值
      */
-    public static Object[] getNamedColumnAndValueFromEntity(Object entity, Column[] namedCols, boolean isSupportBlank, boolean isSupportNull) {
+    public static Object[] getNamedColumnAndValueFromEntity(Object entity, List<Column> namedCols, boolean isSupportBlank, boolean isSupportNull)  {
         List<Column> resultColumns = new ArrayList<>();
         List<Expression> expressions = new ArrayList<>();
-        if (!ValidUtil.valid(namedCols)) {
-            namedCols = new Column[0];
-            namedCols = getAllColumnNamesFromEntity(entity.getClass()).toArray(namedCols);
+        if (!ValidUtil.valid(namedCols) || namedCols.size() == 0) {
+            namedCols = getAllColumnNamesFromEntity(entity.getClass());
         }
 
         for (Column column : namedCols) {
@@ -117,7 +144,7 @@ public class JsqlUtils {
      * @param fieldName
      * @return 单个字段值
      */
-    public static Expression getColumnValueFromEntity(Object entity, String fieldName) {
+    public static Expression getColumnValueFromEntity(Object entity, String fieldName){
         if (fieldName.indexOf("_") != -1) {
             fieldName = JsqlUtils.transSnakeToCamel(fieldName);
         }
@@ -129,6 +156,9 @@ public class JsqlUtils {
                 Method method = entity.getClass().getSuperclass().getDeclaredMethod("get" + String.valueOf(fieldName.charAt(0)).toUpperCase() + fieldName.substring(1));
                 returnValue = method.invoke(entity);
             }
+        } catch (NoSuchMethodException e) {
+            returnValue = null;
+            throw new JsqlFieldException("the fieldname : ["+fieldName+"] not exist in class ["+entity.getClass().getName()+"]");
         } catch (Exception e) {
             returnValue = null;
         }
@@ -166,6 +196,9 @@ public class JsqlUtils {
     }
 
     public static List<OrderByElement> getOrderByElementFromString(String orderBy) {
+        if (!ValidUtil.valid(orderBy)) {
+            return null;
+        }
         List<OrderByElement> orderByElements = new ArrayList<>();
 
         String[] orderByStrings = orderBy.split(",");
@@ -174,15 +207,15 @@ public class JsqlUtils {
                     orderByString.toLowerCase().matches("[^ ]+( +desc)?")) {
 
                 String[] o = orderByString.split(" +");
-                switch (o.length) {
-                    case 1 ：
-                        orderByElements.add(new OrderByElement())
-                        break;
-                    case 2 :
-                        break;
-                        default:
-                            b
+                OrderByElement orderByElement = new OrderByElement();
+                orderByElement.setExpression(new Column(JsqlUtils.transCamelToSnake(o[0])));
+                if (o.length == 2) {
+                    orderByElement.setAsc(false);
+                    if (defaultAsc.equals(o[1].toLowerCase())) {
+                        orderByElement.setAsc(true);
+                    }
                 }
+                orderByElements.add(orderByElement);
             }
         }
 
@@ -218,12 +251,12 @@ public class JsqlUtils {
      * @return 转换后的字符串
      */
     public static String transSnakeToCamel(String name) {
-        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name);
+        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
     }
 
     public static void main(String[] args) {
         List<String> s = new ArrayList<>();
-        com.zscp.master.util.RegUtil.getAllMatchValues("[^ ]+( +asc)?","a asc",1,s);
+        com.zscp.master.util.RegUtil.getAllMatchValues("[^ ]+( +asc)?", "a asc", 1, s);
         System.out.println(String.valueOf("a asc".matches("[^ ]+( +asc)?")));
         System.out.println(String.valueOf("asd".matches("[^ ]+( +asc)?")));
         System.out.println(String.valueOf("asd asx".matches("[^ ]+( +asc)?")));
@@ -232,3 +265,4 @@ public class JsqlUtils {
         System.out.println(s);
     }
 }
+
