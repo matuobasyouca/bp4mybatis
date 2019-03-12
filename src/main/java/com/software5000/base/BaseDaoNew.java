@@ -284,8 +284,6 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         PlainSelect plainSelect = new PlainSelect();
         plainSelect.setSelectItems(Arrays.asList(new AllColumns()));
         plainSelect.setFromItem(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName())));
-//        CCJSqlParserUtil.parse(ordreBy);
-//        plainSelect.setOrderByElements();
         AndExpressionList andExpressionList = new AndExpressionList();
         Object[] colsAndValues = JsqlUtils.getNamedColumnAndValueFromEntity(entity, null, false, false);
 
@@ -294,12 +292,14 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         }
 
         plainSelect.setWhere(andExpressionList.get());
+        plainSelect.setOrderByElements(JsqlUtils.getOrderByElementFromString(ordreBy));
 
-
+        // 构建Sql并执行
         List lastResult = this.selectList("BaseDao.selectEntity", new HashMap<String, String>() {{
             put("baseSql", plainSelect.toString());
         }});
 
+        // 生成对应对象列表，并且赋值
         List<?> result = null;
         if (lastResult instanceof Page) {
             result = ((Page) lastResult).getResult();

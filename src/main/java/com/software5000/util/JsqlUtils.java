@@ -4,11 +4,14 @@ import com.google.common.base.CaseFormat;
 import com.software5000.base.BaseDaoNew;
 import com.software5000.base.NotDatabaseField;
 import com.zscp.master.util.DateUtils;
+import com.zscp.master.util.RegUtil;
+import com.zscp.master.util.StringUtil;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -162,6 +165,30 @@ public class JsqlUtils {
         }
     }
 
+    public static List<OrderByElement> getOrderByElementFromString(String orderBy) {
+        List<OrderByElement> orderByElements = new ArrayList<>();
+
+        String[] orderByStrings = orderBy.split(",");
+        for (String orderByString : orderByStrings) {
+            if (orderByString.toLowerCase().matches("[^ ]+( +asc)?") ||
+                    orderByString.toLowerCase().matches("[^ ]+( +desc)?")) {
+
+                String[] o = orderByString.split(" +");
+                switch (o.length) {
+                    case 1 ：
+                        orderByElements.add(new OrderByElement())
+                        break;
+                    case 2 :
+                        break;
+                        default:
+                            b
+                }
+            }
+        }
+
+        return orderByElements;
+    }
+
     /**
      * 返回一个等式过滤条件
      *
@@ -192,5 +219,16 @@ public class JsqlUtils {
      */
     public static String transSnakeToCamel(String name) {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name);
+    }
+
+    public static void main(String[] args) {
+        List<String> s = new ArrayList<>();
+        com.zscp.master.util.RegUtil.getAllMatchValues("[^ ]+( +asc)?","a asc",1,s);
+        System.out.println(String.valueOf("a asc".matches("[^ ]+( +asc)?")));
+        System.out.println(String.valueOf("asd".matches("[^ ]+( +asc)?")));
+        System.out.println(String.valueOf("asd asx".matches("[^ ]+( +asc)?")));
+        System.out.println("abc   def".split(" "));
+        System.out.println("abc   def".split(" +"));
+        System.out.println(s);
     }
 }

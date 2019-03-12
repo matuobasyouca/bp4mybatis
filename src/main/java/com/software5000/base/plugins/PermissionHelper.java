@@ -15,10 +15,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.mapping.BoundSql;
-import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.ParameterMapping;
-import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -112,12 +109,11 @@ public class PermissionHelper implements Interceptor {
             BoundSql boundSql = ms.getBoundSql(parameter);
             String sql = boundSql.getSql().trim();
 
-            String sqlCmdType = ms.getSqlCommandType().name();
-            if ("update".equalsIgnoreCase(sqlCmdType)) {
+            if (SqlCommandType.UPDATE == ms.getSqlCommandType()) {
                 sql = processUpdateSql(sql, rules, principal);
-            } else if ("delete".equalsIgnoreCase(sqlCmdType)) {
+            } else if (SqlCommandType.DELETE == ms.getSqlCommandType()) {
                 sql = processDeleteSql(sql, rules, principal);
-            } else if ("select".equalsIgnoreCase(sqlCmdType)) {
+            } else if (SqlCommandType.SELECT == ms.getSqlCommandType()) {
                 sql = processSelectSql(sql, rules, principal);
             }
 
