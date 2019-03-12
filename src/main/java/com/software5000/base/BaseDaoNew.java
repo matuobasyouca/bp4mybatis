@@ -3,6 +3,7 @@ package com.software5000.base;
 import com.github.pagehelper.Page;
 import com.software5000.base.jsql.AndExpressionList;
 import com.software5000.util.JsqlUtils;
+import com.sun.istack.internal.NotNull;
 import com.zscp.master.util.ClassUtil;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -300,6 +301,11 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         }});
 
         // 生成对应对象列表，并且赋值
+        return fillEntities(entity, lastResult);
+    }
+
+
+    private <T extends BaseEntity> List<T> fillEntities(T entity, List lastResult) {
         List<?> result = null;
         if (lastResult instanceof Page) {
             result = ((Page) lastResult).getResult();

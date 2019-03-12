@@ -698,32 +698,6 @@ public class BaseDao extends SqlSessionDaoSupport {
         Map<String, String> param = new HashMap<>();
         param.put("baseSql", sqlString.toString());
         List lastResult = this.selectList("BaseDao.selectEntity", param);
-        List<?> result = null;
-        if (lastResult instanceof Page) {
-            result = ((Page) lastResult).getResult();
-        } else {
-            result = lastResult;
-        }
-        List<BaseEntity> tempList = new ArrayList<>();
-        for (Object sr : result) {
-            try {
-                BaseEntity singleResult = (BaseEntity) Class.forName(entity.getClass().getName()).newInstance();
-
-                for (String key : ((Map<String, Object>) sr).keySet()) {
-                    ClassUtil.setValueByField(singleResult, key, ((Map<String, Object>) sr).get(key));
-                }
-
-                tempList.add(singleResult);
-            } catch (Exception e) {
-                logger.error("processing entity setter value error, entity : [" + entity.getClass().getName() + "] ", e);
-            }
-        }
-        if (lastResult instanceof Page) {
-            ((Page) lastResult).getResult().clear();
-            ((Page) lastResult).getResult().addAll(tempList);
-        } else {
-            lastResult = tempList;
-        }
         return lastResult;
     }
 
