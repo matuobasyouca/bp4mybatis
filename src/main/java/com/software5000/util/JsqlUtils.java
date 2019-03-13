@@ -5,10 +5,10 @@ import com.software5000.base.NotDatabaseField;
 import com.zscp.master.util.DateUtils;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.OrderByElement;
+import org.checkerframework.checker.index.qual.LessThan;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -47,6 +47,14 @@ public class JsqlUtils {
     }
 
 
+    /**
+     * 根据指定的字段名称获取对应的列名
+     *
+     * @param objClass 目标对象
+     * @param namedColumnNames 指定的字段名称
+     *
+     * @return 列数组
+     */
     public static List<Column> getAllColumnNamesFromEntityWithNames(Class<?> objClass, List<String> namedColumnNames)  {
         return getAllFieldsFromClass(objClass, namedColumnNames).stream()
                 .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
@@ -56,6 +64,14 @@ public class JsqlUtils {
 
     }
 
+    /**
+     * 根据指定排除的字段名称获取其余的列名
+     *
+     * @param objClass 目标对象
+     * @param exceptColumnNames 指定的排除字段名称
+     *
+     * @return 列数组
+     */
     public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames)  {
         return getAllFieldsFromClass(objClass, exceptColumnNames).stream()
                 .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
@@ -65,6 +81,14 @@ public class JsqlUtils {
 
     }
 
+    /**
+     * 内部方法，获取对应类的全部字段属性，并且排除指定的字段
+     *
+     * @param objClass 目标类
+     * @param exceptColumnNames 指定字段列表
+     *
+     * @return 字段列表
+     */
     private static List<Field> getAllFieldsFromClass(Class<?> objClass, List<String> exceptColumnNames)  {
         List<Field> fields = new ArrayList();
         fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
@@ -77,6 +101,14 @@ public class JsqlUtils {
         return fields;
     }
 
+    /**
+     * 验证字段名是否存在，防止字符串拼写错误
+     *
+     * @param fields 字段列表
+     * @param columnNames 待验证列名
+     *
+     * @return 是否存在对应字段
+     */
     private static boolean checkColumnNameNotExists(List<Field> fields, List<String> columnNames) {
         if (!ValidUtil.valid(columnNames)) {
             return false;
@@ -172,7 +204,7 @@ public class JsqlUtils {
      * @param value 字段值
      * @return JSqlParser中的标准类型值
      */
-    private static Expression convertValueType(Object value) {
+    public static Expression convertValueType(Object value) {
         if (value == null) {
             return new NullValue();
         }
@@ -222,6 +254,7 @@ public class JsqlUtils {
         return orderByElements;
     }
 
+    // region 封装条件表达式
     /**
      * 返回一个等式过滤条件
      *
@@ -230,11 +263,39 @@ public class JsqlUtils {
      * @return 等式过滤条件 如 1=1
      */
     public static Expression equalTo(Column column, Expression value) {
-        EqualsTo equalsTo = new EqualsTo();
-        equalsTo.setLeftExpression(column);
-        equalsTo.setRightExpression(value);
-        return equalsTo;
+        EqualsTo exp = new EqualsTo();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
     }
+
+    public static Expression greaterThan(Column column, Expression value) {
+        GreaterThan exp = new GreaterThan();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
+
+    public static Expression greaterThanEquals(Column column, Expression value) {
+        GreaterThanEquals exp= new GreaterThanEquals();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
+    public static Expression lessThan(Column column, Expression value) {
+        MinorThan exp = new MinorThan();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
+
+    public static Expression lessThanEquals(Column column, Expression value) {
+        MinorThanEquals exp= new MinorThanEquals();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
+    // endregion
 
     /**
      * 骆驼转蛇

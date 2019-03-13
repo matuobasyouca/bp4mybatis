@@ -2,16 +2,14 @@ package com.software5000.base;
 
 import com.github.pagehelper.Page;
 import com.software5000.base.jsql.AndExpressionList;
+import com.software5000.base.jsql.ConditionWrapper;
 import com.software5000.util.JsqlUtils;
-import com.sun.istack.internal.NotNull;
 import com.zscp.master.util.ClassUtil;
 import com.zscp.master.util.ValidUtil;
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.MultiExpressionList;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -70,7 +68,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @param entity 实体对象
      * @return 带id的插入对象
      */
-    public <T extends BaseEntity> T insertEntity(T entity) throws SQLException {
+    public <T extends BaseEntity> T insertEntity(T entity) {
         Insert insert = new Insert();
         insert.setTable(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName())));
         insert.setColumns(JsqlUtils.getAllColumnNamesFromEntity(entity.getClass()));
@@ -255,14 +253,14 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
     /**
      * 根据sql方法名称取回查询结果列表
      */
-    public List<?> selectList(String sqlName) throws SQLException {
+    public List<?> selectList(String sqlName) {
         return getSqlSession().selectList(sqlName);
     }
 
     /**
      * 根据sql方法名称和条件，取回查询结果列象
      */
-    public List<?> selectList(String sqlName, Object obj) throws SQLException {
+    public List<?> selectList(String sqlName, Object obj) {
         return getSqlSession().selectList(sqlName, obj);
     }
 
@@ -273,7 +271,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * @param entity
      * @throws SQLException
      */
-    public <T extends BaseEntity> List<T> selectEntity(T entity) throws SQLException, JSQLParserException {
+    public <T extends BaseEntity> List<T> selectEntity(T entity) {
         return selectEntity(entity, null);
     }
 
@@ -281,13 +279,23 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
      * 简单加载实体对象
      *
      * @param entity
+     * @param orderBy 排序字段
      * @throws SQLException
      */
-    public <T extends BaseEntity> List<T> selectEntity(T entity, String ordreBy) throws SQLException, JSQLParserException {
+    public <T extends BaseEntity> List<T> selectEntity(T entity, String orderBy) {
+        return selectEntity(entity,null, orderBy);
+    }
+
+    public <T extends BaseEntity> List<T> selectEntity(T entity, ConditionWrapper conditionWrapper, String orderBy) {
         PlainSelect plainSelect = new PlainSelect();
         plainSelect.setSelectItems(Arrays.asList(new AllColumns()));
         plainSelect.setFromItem(new Table(JsqlUtils.transCamelToSnake(entity.getClass().getSimpleName())));
         AndExpressionList andExpressionList = new AndExpressionList();
+
+        // 添加外部条件
+        // PS：有添加外部条件的字段，会被清除实体值，防止后续再加入条件
+        andExpressionList.append(ValidUtil.valid(conditionWrapper)?conditionWrapper.get():null);
+
         Object[] colsAndValues = JsqlUtils.getNamedColumnAndValueFromEntity(entity, null, false, false);
 
         for (int i = 0; i < ((List) colsAndValues[0]).size(); i++) {
@@ -295,7 +303,7 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         }
 
         plainSelect.setWhere(andExpressionList.get());
-        plainSelect.setOrderByElements(JsqlUtils.getOrderByElementFromString(ordreBy));
+        plainSelect.setOrderByElements(JsqlUtils.getOrderByElementFromString(orderBy));
 
         // 构建Sql并执行
         List lastResult = this.selectList("BaseDao.selectEntity", new HashMap<String, String>() {{
@@ -305,7 +313,6 @@ public class BaseDaoNew extends SqlSessionDaoSupport {
         // 生成对应对象列表，并且赋值
         return fillEntities(entity, lastResult);
     }
-
 
     /**
      * 利用结果集填充对应实体

@@ -22,7 +22,6 @@ public class AndExpressionList {
      * 添加单个过滤条件表达式
      *
      * @param rightExpression 单个过滤条件
-     *
      * @return
      */
     public AndExpressionList append(Expression rightExpression) {
@@ -38,15 +37,12 @@ public class AndExpressionList {
      * 添加过滤条件列表
      *
      * @param expressions 过滤条件列表
-     *
      * @return
      */
     public AndExpression appendListAndGet(List<Expression> expressions) {
-
         for (Expression expression : expressions) {
             this.append(expression);
         }
-
         return andExpression;
     }
 
