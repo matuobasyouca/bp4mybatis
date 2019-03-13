@@ -2,6 +2,7 @@ package com.software5000.util;
 
 import com.google.common.base.CaseFormat;
 import com.software5000.base.NotDatabaseField;
+import com.zscp.master.util.ArrayUtil;
 import com.zscp.master.util.DateUtils;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
@@ -16,9 +17,7 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class JsqlUtils {
@@ -189,7 +188,6 @@ public class JsqlUtils {
                 returnValue = method.invoke(entity);
             }
         } catch (NoSuchMethodException e) {
-            returnValue = null;
             throw new JsqlFieldException("the fieldname : ["+fieldName+"] not exist in class ["+entity.getClass().getName()+"]");
         } catch (Exception e) {
             returnValue = null;
@@ -209,6 +207,10 @@ public class JsqlUtils {
             return new NullValue();
         }
 
+        if (value.getClass().isArray()|| value instanceof Collection) {
+            throw new JsqlFieldException("please use [convertValueTypeList] method for Array or Collection");
+        }
+
         if (value instanceof Double || value instanceof Float) {
             return new DoubleValue(String.valueOf(value));
         } else if (value instanceof Long || value instanceof Short
@@ -225,6 +227,27 @@ public class JsqlUtils {
             // 字符串要做防注入处理
             return new StringValue(String.valueOf(value).trim().replace("'", "\\'"));
         }
+    }
+
+    /**
+     * 根据字段值的实际类型转换为JSqlParser中的标准类型
+     *
+     * @param value 字段值
+     * @return JSqlParser中的标准类型值
+     */
+    public static ExpressionList convertValueTypeList(Object value) {
+        if (value == null || (!value.getClass().isArray() && !(value instanceof Collection))) {
+            throw new JsqlFieldException("value can't be null and must be Array or Collection!");
+        }
+
+        ExpressionList expressionList = new ExpressionList();
+        Object[] values = value.getClass().isArray() ? ((Object[]) value) : ((Collection) value).toArray();
+        for (Object v : values) {
+            expressionList.getExpressions().add(JsqlUtils.convertValueType(v));
+        }
+
+        return expressionList;
+
     }
 
     public static List<OrderByElement> getOrderByElementFromString(String orderBy) {
@@ -269,6 +292,12 @@ public class JsqlUtils {
         return exp;
     }
 
+    public static Expression notEqualTo(Column column, Expression value) {
+        NotEqualsTo exp = new NotEqualsTo();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
     public static Expression greaterThan(Column column, Expression value) {
         GreaterThan exp = new GreaterThan();
         exp.setLeftExpression(column);
@@ -295,6 +324,37 @@ public class JsqlUtils {
         exp.setRightExpression(value);
         return exp;
     }
+
+    public static Expression in(Column column, ItemsList value) {
+        InExpression exp = new InExpression();
+        exp.setLeftExpression(column);
+        exp.setLeftItemsList(value);
+        return exp;
+    }
+    public static Expression notIn(Column column, ItemsList value) {
+        InExpression exp = new InExpression();
+        exp.setNot(true);
+        exp.setLeftExpression(column);
+        exp.setLeftItemsList(value);
+        return exp;
+    }
+
+
+    public static Expression like(Column column, Expression value) {
+        LikeExpression exp = new LikeExpression();
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
+
+    public static Expression notLike(Column column, Expression value) {
+        LikeExpression exp = new LikeExpression();
+        exp.setNot(true);
+        exp.setLeftExpression(column);
+        exp.setRightExpression(value);
+        return exp;
+    }
+
     // endregion
 
     /**

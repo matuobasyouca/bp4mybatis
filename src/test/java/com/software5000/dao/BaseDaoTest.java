@@ -27,10 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:spring-core.xml", "classpath:spring-db.xml"})
@@ -73,6 +70,11 @@ public class BaseDaoTest {
 //            plainSelect.setIntoTables(Arrays.asList(new Table(SystemCode.class.getSimpleName())));
             long t2 = System.currentTimeMillis();
             logger.info("============> time is : "+(t2-t1));
+
+            Object strings = new String[]{"1", "2", "3"};
+            Object ss2 = Arrays.asList(new String[]{"1", "2", "3"});
+            logger.info("ss : " + strings.getClass().isArray());
+            logger.info("ss : " + (ss2 instanceof Collection));
 
             ConditionWrapper conditionWrapper = new ConditionWrapper(systemCode);
             conditionWrapper.ge("id")
