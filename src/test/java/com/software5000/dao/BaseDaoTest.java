@@ -101,7 +101,7 @@ public class BaseDaoTest {
             ConditionWrapper conditionWrapper = new ConditionWrapper(systemCode);
             conditionWrapper.ge("id")
             .in("id",JsqlUtils.convertValueTypeList(new Integer[]{1,2,3}))
-//                    .lt("codeFiter")
+                    .lt("codeFiter")
 //                    .gt("id")
             ;
 //            System.out.println(conditionWrapper.get());

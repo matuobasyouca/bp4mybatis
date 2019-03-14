@@ -37,7 +37,7 @@ public class ConditionWrapper<T extends BaseEntity> {
      *
      * @return
      */
-    public AndExpression get() {
+    public Expression get() {
         cleanEntityValue();
         return this.andExpressionList.get();
     }
@@ -227,6 +227,4 @@ public class ConditionWrapper<T extends BaseEntity> {
     }
     // endregion
 
-
-//    private boolean
 }

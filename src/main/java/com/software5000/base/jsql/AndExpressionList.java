@@ -3,9 +3,7 @@ package com.software5000.base.jsql;
 
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 
 import java.util.List;
 
