@@ -43,7 +43,7 @@
 			<array>
 				<bean class="com.software5000.base.plugins.PermissionHelper">
 				</bean>
-				<bean class="com.software5000.base.plugins.CommonDataInterceptor">
+				<bean class="com.software5000.base.plugins.CommonInterceptor">
 				</bean>
 				<bean class="com.github.pagehelper.PageInterceptor">
 					<property name="properties">

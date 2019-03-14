@@ -241,6 +241,7 @@ public class JsqlUtils {
         }
 
         ExpressionList expressionList = new ExpressionList();
+        expressionList.setExpressions(new ArrayList<>());
         Object[] values = value.getClass().isArray() ? ((Object[]) value) : ((Collection) value).toArray();
         for (Object v : values) {
             expressionList.getExpressions().add(JsqlUtils.convertValueType(v));
@@ -328,14 +329,14 @@ public class JsqlUtils {
     public static Expression in(Column column, ItemsList value) {
         InExpression exp = new InExpression();
         exp.setLeftExpression(column);
-        exp.setLeftItemsList(value);
+        exp.setRightItemsList(value);
         return exp;
     }
     public static Expression notIn(Column column, ItemsList value) {
         InExpression exp = new InExpression();
         exp.setNot(true);
         exp.setLeftExpression(column);
-        exp.setLeftItemsList(value);
+        exp.setRightItemsList(value);
         return exp;
     }
 

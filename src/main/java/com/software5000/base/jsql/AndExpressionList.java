@@ -16,6 +16,7 @@ import java.util.List;
  */
 public class AndExpressionList {
 
+    private Expression singleExpression = null;
     private AndExpression andExpression = null;
 
     /**
@@ -25,8 +26,13 @@ public class AndExpressionList {
      * @return
      */
     public AndExpressionList append(Expression rightExpression) {
+        if(!ValidUtil.valid(singleExpression)){
+            singleExpression = rightExpression;
+            return this;
+        }
+
         if (!ValidUtil.valid(andExpression)) {
-            andExpression = new AndExpression(new EqualToForever(), rightExpression);
+            andExpression = new AndExpression(singleExpression, rightExpression);
         } else {
             andExpression = new AndExpression(andExpression, rightExpression);
         }
@@ -51,15 +57,8 @@ public class AndExpressionList {
      *
      * @return
      */
-    public AndExpression get() {
-        return andExpression;
+    public Expression get() {
+        return ValidUtil.valid(andExpression)?andExpression:singleExpression;
     }
 
-}
-
-class EqualToForever extends EqualsTo {
-    public EqualToForever() {
-        this.setLeftExpression(new LongValue(1));
-        this.setRightExpression(new LongValue(1));
-    }
 }

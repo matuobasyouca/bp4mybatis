@@ -8,6 +8,7 @@ import com.software5000.base.jsql.AndExpressionList;
 import com.software5000.base.jsql.ConditionWrapper;
 import com.software5000.biz.entity.SystemCode;
 import com.software5000.util.JsqlUtils;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.NullValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -18,6 +19,7 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -41,6 +43,17 @@ public class BaseDaoTest {
 
     @Autowired
     BaseDaoNew baseDaoNew;
+
+    private Expression removeForeverEqual(Expression expression){
+        if (expression instanceof AndExpression) {
+            // 如果左右两边表达式 都不是 AND 并且其中一个是EqualsTo
+
+            return null;
+        } else {
+            return expression;
+        }
+
+    }
 
     @Test
     public void testSelectRecChannel() {
@@ -76,8 +89,18 @@ public class BaseDaoTest {
             logger.info("ss : " + strings.getClass().isArray());
             logger.info("ss : " + (ss2 instanceof Collection));
 
+            String sql ="select * from SystemCode where 1=1 and id=1 and 1=3";
+            Statement stmt = CCJSqlParserUtil.parse(sql);
+            PlainSelect select = (PlainSelect) ((Select) stmt).getSelectBody();
+            if(select.getWhere() instanceof EqualsTo){
+                if(JsqlUtils.convertValueType(1) == ((EqualsTo)select.getWhere()).getLeftExpression() && JsqlUtils.convertValueType(1) == ((EqualsTo)select.getWhere()).getRightExpression() ){
+                   select.setWhere(null);
+                }
+            }
+
             ConditionWrapper conditionWrapper = new ConditionWrapper(systemCode);
             conditionWrapper.ge("id")
+            .in("id",JsqlUtils.convertValueTypeList(new Integer[]{1,2,3}))
 //                    .lt("codeFiter")
 //                    .gt("id")
             ;

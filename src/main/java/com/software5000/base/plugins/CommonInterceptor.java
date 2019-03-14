@@ -11,6 +11,8 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
@@ -27,11 +29,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * @author 605162215@qq.com
- * @date 2016-06-23
+ * 通用的底层数据处理
+ * 1. 新增时，自动添加 新增和修改时间 为当前时间
+ * 2. 修改时，自动添加 修改时间 为当前时间
+ * 3. 查询时，自动去除 查询条件中的 1=1 条件
+ *
+ * @author matuobasyouca@gmail.com
  */
 @Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})})
-public class CommonDataInterceptor implements Interceptor {
+public class CommonInterceptor implements Interceptor {
 
     public static final String UPDATE_TIME_FIELD_NAME = JsqlUtils.transCamelToSnake("updateTime");
     public static final String CREATE_TIME_FIELD_NAME = JsqlUtils.transCamelToSnake("createTime");
@@ -87,6 +93,7 @@ public class CommonDataInterceptor implements Interceptor {
         return invocation.proceed();
     }
 
+
     private String setTimeForInsert(String sqls) {
 
         int createTimeIndex = -1;
@@ -124,7 +131,6 @@ public class CommonDataInterceptor implements Interceptor {
         } catch (JSQLParserException e) {
             logger.error("set insert createTime/updateTime error!", e);
         }
-
 
         return null;
     }
@@ -190,10 +196,6 @@ public class CommonDataInterceptor implements Interceptor {
         if (null != properties && !properties.isEmpty()) {
             props = properties;
         }
-    }
-
-    public static void ignoreDataThisTime() {
-        IGNORE_DATA.set(System.currentTimeMillis());
     }
 
 }
