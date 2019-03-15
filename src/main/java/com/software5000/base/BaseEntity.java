@@ -21,10 +21,10 @@ public class BaseEntity implements Serializable {
 
     Integer id;
 
-    @JSONField(format="yyyy-MM-dd HH:mm:ss")
-    Timestamp createTime =null;
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    Timestamp createTime = null;
 
-    @JSONField (format="yyyy-MM-dd HH:mm:ss")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     Timestamp updateTime;
 
     public Integer getId() {

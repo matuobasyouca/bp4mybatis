@@ -1,12 +1,11 @@
 package com.software5000.base.jsql;
 
 import com.software5000.base.BaseEntity;
-import com.software5000.util.JsqlFieldException;
+import com.software5000.util.BpMybatisException;
 import com.software5000.util.JsqlUtils;
 import com.zscp.master.util.ClassUtil;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 import net.sf.jsqlparser.schema.Column;
 
@@ -15,6 +14,7 @@ import java.util.Set;
 
 /**
  * 封装查询条件类
+ *
  * @param <T> BaseEntity实体
  */
 public class ConditionWrapper<T extends BaseEntity> {
@@ -25,6 +25,7 @@ public class ConditionWrapper<T extends BaseEntity> {
 
     /**
      * 需要传入实体用于初始化类
+     *
      * @param entity
      */
     public ConditionWrapper(T entity) {
@@ -53,7 +54,7 @@ public class ConditionWrapper<T extends BaseEntity> {
                 ClassUtil.setValueByField(this.entity, fieldName, null);
             }
         } catch (Exception e) {
-            throw new JsqlFieldException("the fieldname : [" + fieldName + "] not exist in class [" + this.entity.getClass().getName() + "]");
+            throw new BpMybatisException("the fieldname : [" + fieldName + "] not exist in class [" + this.entity.getClass().getName() + "]");
         }
     }
     // region condition 条件区
@@ -76,7 +77,7 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper eq(String fieldName, Expression value) {
-        if (!ValidUtil.valid(value)) {
+        if (value == null) {
             value = JsqlUtils.getColumnValueFromEntity(this.entity, fieldName);
         }
 
@@ -103,7 +104,7 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper gt(String fieldName, Expression value) {
-        if (!ValidUtil.valid(value)) {
+        if (value == null) {
             value = JsqlUtils.getColumnValueFromEntity(this.entity, fieldName);
         }
 
@@ -130,7 +131,7 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper ge(String fieldName, Expression value) {
-        if (!ValidUtil.valid(value)) {
+        if (value == null) {
             value = JsqlUtils.getColumnValueFromEntity(this.entity, fieldName);
         }
 
@@ -158,7 +159,7 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper lt(String fieldName, Expression value) {
-        if (!ValidUtil.valid(value)) {
+        if (value == null) {
             value = JsqlUtils.getColumnValueFromEntity(this.entity, fieldName);
         }
 
@@ -185,7 +186,7 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper le(String fieldName, Expression value) {
-        if (!ValidUtil.valid(value)) {
+        if (value == null) {
             value = JsqlUtils.getColumnValueFromEntity(this.entity, fieldName);
         }
 
@@ -193,6 +194,7 @@ public class ConditionWrapper<T extends BaseEntity> {
         needCleanFields.add(fieldName);
         return this;
     }
+
     /**
      * 小于等于，并且给定参数，如果参数为空，会使用实体中的参数
      *
@@ -201,14 +203,15 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper in(String fieldName, ItemsList value) {
-        if (!ValidUtil.valid(value)) {
-            throw new JsqlFieldException("the 'in' condition can't query with null value");
+        if (value == null) {
+            throw new BpMybatisException("the 'in' condition can't query with null value");
         }
 
         this.andExpressionList.append(JsqlUtils.in(new Column(JsqlUtils.transCamelToSnake(fieldName)), value));
         needCleanFields.add(fieldName);
         return this;
     }
+
     /**
      * 小于等于，并且给定参数，如果参数为空，会使用实体中的参数
      *
@@ -217,8 +220,8 @@ public class ConditionWrapper<T extends BaseEntity> {
      * @return 当前对象本身
      */
     public ConditionWrapper notIn(String fieldName, ItemsList value) {
-        if (!ValidUtil.valid(value)) {
-            throw new JsqlFieldException("the 'in' condition can't query with null value");
+        if (value == null) {
+            throw new BpMybatisException("the 'in' condition can't query with null value");
         }
 
         this.andExpressionList.append(JsqlUtils.notIn(new Column(JsqlUtils.transCamelToSnake(fieldName)), value));

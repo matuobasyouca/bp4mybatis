@@ -1,23 +1,14 @@
 package com.software5000.dao;
 
 
-import com.google.common.base.CaseFormat;
 import com.software5000.base.BaseDao;
 import com.software5000.base.BaseDaoNew;
-import com.software5000.base.jsql.AndExpressionList;
 import com.software5000.base.jsql.ConditionWrapper;
 import com.software5000.biz.entity.SystemCode;
 import com.software5000.util.JsqlUtils;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.NullValue;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import org.junit.Test;
@@ -29,7 +20,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:spring-core.xml", "classpath:spring-db.xml"})
@@ -44,16 +38,6 @@ public class BaseDaoTest {
     @Autowired
     BaseDaoNew baseDaoNew;
 
-    private Expression removeForeverEqual(Expression expression){
-        if (expression instanceof AndExpression) {
-            // 如果左右两边表达式 都不是 AND 并且其中一个是EqualsTo
-
-            return null;
-        } else {
-            return expression;
-        }
-
-    }
 
     @Test
     public void testSelectRecChannel() {
@@ -104,6 +88,8 @@ public class BaseDaoTest {
                     .lt("codeFiter")
 //                    .gt("id")
             ;
+
+
 //            System.out.println(conditionWrapper.get());
 
 //            sc = baseDaoNew.selectEntity(systemCode);

@@ -1,13 +1,10 @@
 package com.software5000.base;
 
-import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zscp.master.util.ClassUtil;
 import com.zscp.master.util.ValidUtil;
 import com.zscp.master.util.collection.CollectionUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.support.SqlSessionDaoSupport;
 import org.slf4j.Logger;

@@ -2,19 +2,16 @@ package com.software5000.util;
 
 import com.google.common.base.CaseFormat;
 import com.software5000.base.NotDatabaseField;
-import com.zscp.master.util.ArrayUtil;
 import com.zscp.master.util.DateUtils;
 import com.zscp.master.util.ValidUtil;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.OrderByElement;
-import org.checkerframework.checker.index.qual.LessThan;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
@@ -33,7 +30,7 @@ public class JsqlUtils {
      * @param objClass 目标类
      * @return 列数组
      */
-    public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass)  {
+    public static List<Column> getAllColumnNamesFromEntity(Class<?> objClass) {
         /**
          * 是否包含父类字段
          */
@@ -49,12 +46,11 @@ public class JsqlUtils {
     /**
      * 根据指定的字段名称获取对应的列名
      *
-     * @param objClass 目标对象
+     * @param objClass         目标对象
      * @param namedColumnNames 指定的字段名称
-     *
      * @return 列数组
      */
-    public static List<Column> getAllColumnNamesFromEntityWithNames(Class<?> objClass, List<String> namedColumnNames)  {
+    public static List<Column> getAllColumnNamesFromEntityWithNames(Class<?> objClass, List<String> namedColumnNames) {
         return getAllFieldsFromClass(objClass, namedColumnNames).stream()
                 .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
                 .filter(e -> ValidUtil.valid(namedColumnNames) ? namedColumnNames.contains(e.getName()) : false)
@@ -66,12 +62,11 @@ public class JsqlUtils {
     /**
      * 根据指定排除的字段名称获取其余的列名
      *
-     * @param objClass 目标对象
+     * @param objClass          目标对象
      * @param exceptColumnNames 指定的排除字段名称
-     *
      * @return 列数组
      */
-    public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames)  {
+    public static List<Column> getAllColumnNamesFromEntityExceptSome(Class<?> objClass, List<String> exceptColumnNames) {
         return getAllFieldsFromClass(objClass, exceptColumnNames).stream()
                 .filter(f -> (f.getAnnotation(NotDatabaseField.class) == null))
                 .filter(e -> ValidUtil.valid(exceptColumnNames) ? !exceptColumnNames.contains(e.getName()) : true)
@@ -83,18 +78,17 @@ public class JsqlUtils {
     /**
      * 内部方法，获取对应类的全部字段属性，并且排除指定的字段
      *
-     * @param objClass 目标类
+     * @param objClass          目标类
      * @param exceptColumnNames 指定字段列表
-     *
      * @return 字段列表
      */
-    private static List<Field> getAllFieldsFromClass(Class<?> objClass, List<String> exceptColumnNames)  {
+    private static List<Field> getAllFieldsFromClass(Class<?> objClass, List<String> exceptColumnNames) {
         List<Field> fields = new ArrayList();
         fields.addAll(Arrays.asList(objClass.getSuperclass().getDeclaredFields()));
         fields.addAll(Arrays.asList(objClass.getDeclaredFields()));
 
         if (checkColumnNameNotExists(fields, exceptColumnNames)) {
-            throw new JsqlFieldException("the fieldname : ["+exceptColumnNames+"] not exist in class ["+objClass.getName()+"]");
+            throw new BpMybatisException("the fieldname : [" + exceptColumnNames + "] not exist in class [" + objClass.getName() + "]");
         }
 
         return fields;
@@ -103,9 +97,8 @@ public class JsqlUtils {
     /**
      * 验证字段名是否存在，防止字符串拼写错误
      *
-     * @param fields 字段列表
+     * @param fields      字段列表
      * @param columnNames 待验证列名
-     *
      * @return 是否存在对应字段
      */
     private static boolean checkColumnNameNotExists(List<Field> fields, List<String> columnNames) {
@@ -123,7 +116,7 @@ public class JsqlUtils {
      * @param columns 数据库列
      * @return 字段值列表
      */
-    public static ExpressionList getAllColumnValueFromEntity(Object entity, List<Column> columns)  {
+    public static ExpressionList getAllColumnValueFromEntity(Object entity, List<Column> columns) {
 
         List<Expression> expressions = new ArrayList<>();
         for (Column column : columns) {
@@ -141,7 +134,7 @@ public class JsqlUtils {
      * @param isSupportNull  是否包含Null值的列，true为包含
      * @return 对象数组2个值，结果1：有值的列；结果2：对应顺序列的值
      */
-    public static Object[] getNamedColumnAndValueFromEntity(Object entity, List<Column> namedCols, boolean isSupportBlank, boolean isSupportNull)  {
+    public static Object[] getNamedColumnAndValueFromEntity(Object entity, List<Column> namedCols, boolean isSupportBlank, boolean isSupportNull) {
         List<Column> resultColumns = new ArrayList<>();
         List<Expression> expressions = new ArrayList<>();
         if (!ValidUtil.valid(namedCols) || namedCols.size() == 0) {
@@ -175,7 +168,7 @@ public class JsqlUtils {
      * @param fieldName
      * @return 单个字段值
      */
-    public static Expression getColumnValueFromEntity(Object entity, String fieldName){
+    public static Expression getColumnValueFromEntity(Object entity, String fieldName) {
         if (fieldName.indexOf("_") != -1) {
             fieldName = JsqlUtils.transSnakeToCamel(fieldName);
         }
@@ -188,7 +181,7 @@ public class JsqlUtils {
                 returnValue = method.invoke(entity);
             }
         } catch (NoSuchMethodException e) {
-            throw new JsqlFieldException("the fieldname : ["+fieldName+"] not exist in class ["+entity.getClass().getName()+"]");
+            throw new BpMybatisException("the fieldname : [" + fieldName + "] not exist in class [" + entity.getClass().getName() + "]");
         } catch (Exception e) {
             returnValue = null;
         }
@@ -207,8 +200,8 @@ public class JsqlUtils {
             return new NullValue();
         }
 
-        if (value.getClass().isArray()|| value instanceof Collection) {
-            throw new JsqlFieldException("please use [convertValueTypeList] method for Array or Collection");
+        if (value.getClass().isArray() || value instanceof Collection) {
+            throw new BpMybatisException("please use [convertValueTypeList] method for Array or Collection");
         }
 
         if (value instanceof Double || value instanceof Float) {
@@ -237,7 +230,7 @@ public class JsqlUtils {
      */
     public static ExpressionList convertValueTypeList(Object value) {
         if (value == null || (!value.getClass().isArray() && !(value instanceof Collection))) {
-            throw new JsqlFieldException("value can't be null and must be Array or Collection!");
+            throw new BpMybatisException("value can't be null and must be Array or Collection!");
         }
 
         ExpressionList expressionList = new ExpressionList();
@@ -279,6 +272,7 @@ public class JsqlUtils {
     }
 
     // region 封装条件表达式
+
     /**
      * 返回一个等式过滤条件
      *
@@ -299,6 +293,7 @@ public class JsqlUtils {
         exp.setRightExpression(value);
         return exp;
     }
+
     public static Expression greaterThan(Column column, Expression value) {
         GreaterThan exp = new GreaterThan();
         exp.setLeftExpression(column);
@@ -307,11 +302,12 @@ public class JsqlUtils {
     }
 
     public static Expression greaterThanEquals(Column column, Expression value) {
-        GreaterThanEquals exp= new GreaterThanEquals();
+        GreaterThanEquals exp = new GreaterThanEquals();
         exp.setLeftExpression(column);
         exp.setRightExpression(value);
         return exp;
     }
+
     public static Expression lessThan(Column column, Expression value) {
         MinorThan exp = new MinorThan();
         exp.setLeftExpression(column);
@@ -320,7 +316,7 @@ public class JsqlUtils {
     }
 
     public static Expression lessThanEquals(Column column, Expression value) {
-        MinorThanEquals exp= new MinorThanEquals();
+        MinorThanEquals exp = new MinorThanEquals();
         exp.setLeftExpression(column);
         exp.setRightExpression(value);
         return exp;
@@ -332,6 +328,7 @@ public class JsqlUtils {
         exp.setRightItemsList(value);
         return exp;
     }
+
     public static Expression notIn(Column column, ItemsList value) {
         InExpression exp = new InExpression();
         exp.setNot(true);

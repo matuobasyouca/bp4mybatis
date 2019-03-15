@@ -6,11 +6,12 @@ public class UserDefaultZimpl {
 
     public UserDefaultZimpl() {
     }
+
     public UserDefaultZimpl(String userId, String password, String loginType, String openId, BaseEntity realEntity) {
         this.userId = userId;
         this.loginType = loginType;
         this.realEntity = realEntity;
-        this.password=password;
+        this.password = password;
         this.openId = openId;
     }
 
@@ -18,7 +19,7 @@ public class UserDefaultZimpl {
         this.userId = userId;
         this.loginType = loginType;
         this.realEntity = realEntity;
-        this.password=password;
+        this.password = password;
     }
 
 
@@ -33,9 +34,11 @@ public class UserDefaultZimpl {
     public Set<String> getRoles() {
         return roles;
     }
+
     public void setRoles(Set<String> roles) {
         this.roles = roles;
     }
+
     public String getLoginType() {
         return loginType;
     }

@@ -1,7 +1,7 @@
 package com.software5000.base.jsql;
 
 
-import com.zscp.master.util.ValidUtil;
+import com.sun.istack.internal.NotNull;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 
@@ -23,13 +23,13 @@ public class AndExpressionList {
      * @param rightExpression 单个过滤条件
      * @return
      */
-    public AndExpressionList append(Expression rightExpression) {
-        if(!ValidUtil.valid(singleExpression)){
+    public AndExpressionList append(@NotNull Expression rightExpression) {
+        if (singleExpression == null) {
             singleExpression = rightExpression;
             return this;
         }
 
-        if (!ValidUtil.valid(andExpression)) {
+        if (andExpression == null) {
             andExpression = new AndExpression(singleExpression, rightExpression);
         } else {
             andExpression = new AndExpression(andExpression, rightExpression);
@@ -56,7 +56,7 @@ public class AndExpressionList {
      * @return
      */
     public Expression get() {
-        return ValidUtil.valid(andExpression)?andExpression:singleExpression;
+        return andExpression == null ? andExpression : singleExpression;
     }
 
 }

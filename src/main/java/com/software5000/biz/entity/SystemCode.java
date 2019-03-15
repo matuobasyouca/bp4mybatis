@@ -7,168 +7,168 @@ import com.software5000.base.NotDatabaseField;
  * 系统代码表
  */
 public class SystemCode extends BaseEntity {
-	
-	public enum Daos {
-		/**
-		 * 查询系统参数
-		 */
-		selectByPrimaryKey("SystemCode.selectByPrimaryKey"),
 
-		/**
-		 * 根据CodeType查询系统参数
-		 */
-		selectCodeListByCodeType("t_sys_code.selectCodeListByCodeType"),
+    public enum Daos {
+        /**
+         * 查询系统参数
+         */
+        selectByPrimaryKey("SystemCode.selectByPrimaryKey"),
 
-		/**
-		 * 查询系统参数
-		 */
-		selectTsysCodeByProperty("t_sys_code.selectTsysCodeByProperty");
-		public String sqlMapname;
+        /**
+         * 根据CodeType查询系统参数
+         */
+        selectCodeListByCodeType("t_sys_code.selectCodeListByCodeType"),
 
-		private Daos(String name) {
-			this.sqlMapname = name;
-		}
+        /**
+         * 查询系统参数
+         */
+        selectTsysCodeByProperty("t_sys_code.selectTsysCodeByProperty");
+        public String sqlMapname;
 
-		@Override
-		public String toString() {
-			return this.sqlMapname;
-		}
-	}
+        private Daos(String name) {
+            this.sqlMapname = name;
+        }
 
-	/**
-	 * 代码类型
-	 */
-	private String codeType;
-	/**
-	 * 代码名称
-	 */
-	private String codeName;
-	/**
-	 * 代码值
-	 */
-	private String codeValue;
-	/**
-	 * 代码状态
-	 */
-	private String codeStatus;
-	/**
-	 * 代码对应中文名称（显示）
-	 */
-	private String codeShowName;
-	/**
-	 * 代码过滤规则
-	 */
-	private Integer codeFiter;
-	/**
-	 * 代码排序
-	 */
-	private Integer codeSort;
-	/**
-	 * 代码父级代码值
-	 */
-	private String codeParentValue;
-	/**
-	 * 代码描述
-	 */
-	private String codeDesc;
+        @Override
+        public String toString() {
+            return this.sqlMapname;
+        }
+    }
 
-	@NotDatabaseField
-	private String testString;
+    /**
+     * 代码类型
+     */
+    private String codeType;
+    /**
+     * 代码名称
+     */
+    private String codeName;
+    /**
+     * 代码值
+     */
+    private String codeValue;
+    /**
+     * 代码状态
+     */
+    private String codeStatus;
+    /**
+     * 代码对应中文名称（显示）
+     */
+    private String codeShowName;
+    /**
+     * 代码过滤规则
+     */
+    private Integer codeFiter;
+    /**
+     * 代码排序
+     */
+    private Integer codeSort;
+    /**
+     * 代码父级代码值
+     */
+    private String codeParentValue;
+    /**
+     * 代码描述
+     */
+    private String codeDesc;
 
-	public String getCodeType() {
-		return codeType;
-	}
+    @NotDatabaseField
+    private String testString;
 
-	public void setCodeType(String codeType) {
-		this.codeType = codeType;
-	}
+    public String getCodeType() {
+        return codeType;
+    }
 
-	public String getCodeName() {
-		return codeName;
-	}
+    public void setCodeType(String codeType) {
+        this.codeType = codeType;
+    }
 
-	public void setCodeName(String codeName) {
-		this.codeName = codeName;
-	}
+    public String getCodeName() {
+        return codeName;
+    }
 
-	public String getCodeValue() {
-		return codeValue;
-	}
+    public void setCodeName(String codeName) {
+        this.codeName = codeName;
+    }
 
-	public void setCodeValue(String codeValue) {
-		this.codeValue = codeValue;
-	}
+    public String getCodeValue() {
+        return codeValue;
+    }
 
-	public String getCodeStatus() {
-		return codeStatus;
-	}
+    public void setCodeValue(String codeValue) {
+        this.codeValue = codeValue;
+    }
 
-	public void setCodeStatus(String codeStatus) {
-		this.codeStatus = codeStatus;
-	}
+    public String getCodeStatus() {
+        return codeStatus;
+    }
 
-	public String getCodeShowName() {
-		return codeShowName;
-	}
+    public void setCodeStatus(String codeStatus) {
+        this.codeStatus = codeStatus;
+    }
 
-	public void setCodeShowName(String codeShowName) {
-		this.codeShowName = codeShowName;
-	}
+    public String getCodeShowName() {
+        return codeShowName;
+    }
 
-	public Integer getCodeFiter() {
-		return codeFiter;
-	}
+    public void setCodeShowName(String codeShowName) {
+        this.codeShowName = codeShowName;
+    }
 
-	public void setCodeFiter(Integer codeFiter) {
-		this.codeFiter = codeFiter;
-	}
+    public Integer getCodeFiter() {
+        return codeFiter;
+    }
 
-	public Integer getCodeSort() {
-		return codeSort;
-	}
+    public void setCodeFiter(Integer codeFiter) {
+        this.codeFiter = codeFiter;
+    }
 
-	public void setCodeSort(Integer codeSort) {
-		this.codeSort = codeSort;
-	}
+    public Integer getCodeSort() {
+        return codeSort;
+    }
 
-	public String getCodeParentValue() {
-		return codeParentValue;
-	}
+    public void setCodeSort(Integer codeSort) {
+        this.codeSort = codeSort;
+    }
 
-	public void setCodeParentValue(String codeParentValue) {
-		this.codeParentValue = codeParentValue;
-	}
+    public String getCodeParentValue() {
+        return codeParentValue;
+    }
 
-	public String getCodeDesc() {
-		return codeDesc;
-	}
+    public void setCodeParentValue(String codeParentValue) {
+        this.codeParentValue = codeParentValue;
+    }
 
-	public void setCodeDesc(String codeDesc) {
-		this.codeDesc = codeDesc;
-	}
+    public String getCodeDesc() {
+        return codeDesc;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+    public void setCodeDesc(String codeDesc) {
+        this.codeDesc = codeDesc;
+    }
 
-		SystemCode that = (SystemCode) o;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-		if (!codeType.equals(that.codeType)) {
-			return false;
-		}
-		return codeValue.equals(that.codeValue);
+        SystemCode that = (SystemCode) o;
 
-	}
+        if (!codeType.equals(that.codeType)) {
+            return false;
+        }
+        return codeValue.equals(that.codeValue);
 
-	@Override
-	public int hashCode() {
-		int result = codeType.hashCode();
-		result = 31 * result + codeValue.hashCode();
-		return result;
-	}
+    }
+
+    @Override
+    public int hashCode() {
+        int result = codeType.hashCode();
+        result = 31 * result + codeValue.hashCode();
+        return result;
+    }
 }
